@@ -182,8 +182,22 @@ export function registerApiRoutes(app: express.Express) {
 const formatBrandVoice = (bv: any) => {
   if (!bv) return '';
   if (typeof bv === 'string') return bv;
-  
+
   let formatted = `Oppsummering: ${bv.summary}\n`;
+  // Strukturerte stemme-attributt (ekstrahert profil). Støttar både camelCase (lagra profil)
+  // og snake_case (rå dna-svar) for robustheit.
+  const tone = bv.tone;
+  const vocabulary = bv.vocabulary;
+  const rhythm = bv.rhythm;
+  const ctaStyle = bv.ctaStyle ?? bv.cta_style;
+  const values = bv.values;
+  const forbiddenPhrases = bv.forbiddenPhrases ?? bv.forbidden_phrases;
+  if (tone) formatted += `Tone: ${tone}\n`;
+  if (rhythm) formatted += `Rytme og setningsbygnad: ${rhythm}\n`;
+  if (vocabulary) formatted += `Vokabular og tiltaleform: ${vocabulary}\n`;
+  if (ctaStyle) formatted += `CTA-stil: ${ctaStyle}\n`;
+  if (values && values.length > 0) formatted += `Verdiar som skin gjennom: ${values.join(', ')}\n`;
+  if (forbiddenPhrases && forbiddenPhrases.length > 0) formatted += `Forbodne ord/fraser (BRUK ALDRI): ${forbiddenPhrases.join(', ')}\n`;
   if (bv.dos && bv.dos.length > 0) formatted += `Slik skriv vi (DOs): ${bv.dos.join(', ')}\n`;
   if (bv.donts && bv.donts.length > 0) formatted += `Slik skriv vi IKKJE (DONTs): ${bv.donts.join(', ')}\n`;
   if (bv.referenceTexts && bv.referenceTexts.length > 0) {
@@ -202,14 +216,24 @@ const formatBrandVoice = (bv: any) => {
     const model = "gemini-3.5-flash";
     
     try {
-      const { samples } = req.body;
+      const { samples, url } = req.body;
       const apiKey = getApiKey(req);
-      
+
       if (!apiKey) {
         return res.status(401).json({ error: "API-nøkkel manglar. Lim inn nøkkelen din i menyen til venstre." });
       }
-      if (!samples || samples.trim() === '') {
-        return res.status(400).json({ error: "Manglar teksteksempel." });
+
+      // Stemma kan ekstraherast frå limt inn tekst ELLER frå ein URL (vi skrapar sida).
+      let sampleText: string = (samples || '').trim();
+      if (!sampleText && url) {
+        try {
+          sampleText = await fetchAndParse(url);
+        } catch (e: any) {
+          return res.status(e.status || 502).json({ error: `Klarte ikkje å hente tekst frå URL-en: ${e.message}` });
+        }
+      }
+      if (!sampleText) {
+        return res.status(400).json({ error: "Manglar teksteksempel eller URL." });
       }
 
       const ai = new GoogleGenAI({ apiKey });
@@ -223,7 +247,7 @@ const formatBrandVoice = (bv: any) => {
 - CTA (Call to action): Korleis inviterer dei til engasjement?
 
 Her er teksteksempla:
-${samples}`;
+${sampleText}`;
 
       const response = await ai.models.generateContent({
         model: model,
@@ -276,7 +300,7 @@ ${samples}`;
         flow,
         version,
         model,
-        input: { samples: samples.substring(0, 500) },
+        input: { samples: sampleText.substring(0, 500), url },
         output: parsed,
         latency,
         groundingUsed: false,
@@ -290,7 +314,7 @@ ${samples}`;
         flow,
         version,
         model,
-        input: { samples: req.body.samples?.substring(0, 500) },
+        input: { samples: req.body.samples?.substring(0, 500), url: req.body.url },
         output: { error: error instanceof Error ? error.message : String(error) },
         latency,
         groundingUsed: false,

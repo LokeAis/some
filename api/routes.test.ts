@@ -64,6 +64,25 @@ describe('Inputvalidering', () => {
   });
 });
 
+describe('analyze-brand-voice input (tekst eller URL)', () => {
+  it('aksepterer {url}-body men krev nøkkel (401 utan)', async () => {
+    const res = await request(app)
+      .post('/api/analyze-brand-voice')
+      .send({ url: 'https://example.com' });
+    expect(res.status).toBe(401);
+  });
+
+  // Med nøkkel (men utan samples/url) skal valideringa gi 400 FØR noko Gemini-kall.
+  it('med nøkkel men utan samples/url gir 400', async () => {
+    const res = await request(app)
+      .post('/api/analyze-brand-voice')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/tekst|url/i);
+  });
+});
+
 describe('Ukjend rute', () => {
   it('gir 404', async () => {
     const res = await request(app).get('/api/finst-ikkje');

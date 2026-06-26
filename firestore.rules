@@ -212,6 +212,12 @@ service cloud.firestore {
              data.dos is list && data.dos.size() <= 20 &&
              data.donts is list && data.donts.size() <= 20 &&
              data.referenceTexts is list && data.referenceTexts.size() <= 3 &&
+             (!('tone' in data) || (data.tone is string && data.tone.size() < 2000)) &&
+             (!('vocabulary' in data) || (data.vocabulary is string && data.vocabulary.size() < 2000)) &&
+             (!('rhythm' in data) || (data.rhythm is string && data.rhythm.size() < 2000)) &&
+             (!('ctaStyle' in data) || (data.ctaStyle is string && data.ctaStyle.size() < 2000)) &&
+             (!('values' in data) || (data.values is list && data.values.size() <= 20)) &&
+             (!('forbiddenPhrases' in data) || (data.forbiddenPhrases is list && data.forbiddenPhrases.size() <= 50)) &&
              data.createdAt is number &&
              data.updatedAt is number;
     }

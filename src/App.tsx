@@ -860,9 +860,10 @@ export default function App() {
                 {voiceProfileLoading ? (
                   <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div></div>
                 ) : (
-                  <BrandVoiceForm 
+                  <BrandVoiceForm
                     brandId={selectedBrand.id!}
                     initialProfile={voiceProfile}
+                    apiKey={apiKey}
                     onSave={async (profile) => {
                       const success = await saveVoiceProfile(profile);
                       if (success) {

@@ -12,7 +12,6 @@ export interface BrandData {
   tone_of_voice?: string;
   target_audience?: string;
   website_url?: string;
-  brandVoiceDNA?: string;
   createdAt?: any;
   updatedAt?: any;
 }
