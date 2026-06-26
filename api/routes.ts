@@ -1287,10 +1287,11 @@ Returner KUN den omskrivne teksten, utan introduksjon eller forklaring.`;
           break;
         case 'humanize':
           prompt = `<task>
-Skriv om følgjande tekst slik at den høyrest 100 % menneskeleg, naturleg og munnleg ut. Skriv på nynorsk.
+Skriv om følgjande tekst slik at den høyrest 100 % menneskeleg, naturleg og munnleg ut.
 </task>
 
 <rules>
+0. BEHALD SPRÅKET: Skriv på nøyaktig same språk og målform som originalteksten (bokmål skal bli verande bokmål, nynorsk skal bli verande nynorsk). Ikkje omset eller byt målform.
 1. BEHALD MEININGA: Ikkje legg til nye fakta, argument eller informasjon. Ikkje fjern hovudpoenget.
 2. FJERN AI-PREG: Fjern alle typiske klisjear (som "I dagens samfunn", "La oss dykke ned i", "Det er viktig å merke seg").
 3. UNNGÅ AI-PUNKTERING: AI-en brukar ofte lange tankestrek (–) for å skyte inn informasjon. Erstatt desse med naturlege komma, punktum eller omformuler setninga slik at flyten blir meir munnleg.
