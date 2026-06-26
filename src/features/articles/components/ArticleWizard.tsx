@@ -18,7 +18,6 @@ interface ArticleWizardProps {
 }
 
 export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initialArticle }: ArticleWizardProps) {
-  console.log('ArticleWizard rendered with API key length:', apiKey?.length);
   const [topic, setTopic] = useState(initialArticle?.topic || '');
   const [useSearch, setUseSearch] = useState(false);
   const [modelTier, setModelTier] = useState<'standard' | 'premium'>('standard');
@@ -62,7 +61,6 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
     setSuccessMessage(null);
 
     try {
-      console.log('Sending request to /api/generate-outline with API key length:', apiKey?.length);
       const response = await fetch('/api/generate-outline', {
         method: 'POST',
         headers: {
@@ -106,7 +104,6 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
     setSuccessMessage(null);
 
     try {
-      console.log('Sending request to /api/generate-article with API key length:', apiKey?.length);
       const response = await fetch('/api/generate-article', {
         method: 'POST',
         headers: {

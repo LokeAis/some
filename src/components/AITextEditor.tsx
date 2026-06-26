@@ -59,7 +59,6 @@ export function AITextEditor({ value, onChange, apiKey, placeholder, className =
     setError(null);
 
     try {
-      console.log('AITextEditor calling /api/edit-text with action:', action, 'and API key length:', apiKey?.length);
       const response = await fetch('/api/edit-text', {
         method: 'POST',
         headers: {
