@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Wand2, Loader2, Type, AlignLeft, Smile, UserCheck } from 'lucide-react';
+import { Wand2, Loader2, Type, AlignLeft, Smile, UserCheck, Sparkles } from 'lucide-react';
 import { ErrorMessage } from './ErrorMessage';
 
 interface AITextEditorProps {
@@ -9,9 +9,10 @@ interface AITextEditorProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  brandVoice?: any;
 }
 
-export function AITextEditor({ value, onChange, apiKey, placeholder, className = '', disabled = false }: AITextEditorProps) {
+export function AITextEditor({ value, onChange, apiKey, placeholder, className = '', disabled = false, brandVoice }: AITextEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selection, setSelection] = useState<{ start: number; end: number; text: string } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -47,7 +48,7 @@ export function AITextEditor({ value, onChange, apiKey, placeholder, className =
     };
   }, [value]);
 
-  const handleAIEdit = async (action: 'shorter' | 'professional' | 'casual' | 'emojis' | 'humanize') => {
+  const handleAIEdit = async (action: 'shorter' | 'professional' | 'casual' | 'emojis' | 'humanize' | 'on_brand') => {
     if (!apiKey) return;
 
     // If no selection, use the whole text
@@ -67,7 +68,8 @@ export function AITextEditor({ value, onChange, apiKey, placeholder, className =
         },
         body: JSON.stringify({
           text: textToEdit,
-          action
+          action,
+          brandVoice
         })
       });
 
@@ -113,6 +115,16 @@ export function AITextEditor({ value, onChange, apiKey, placeholder, className =
           <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider ml-2 mr-1">
             {selection ? 'Utval' : 'Heile'}
           </span>
+          {brandVoice && (
+            <button
+              onClick={() => handleAIEdit('on_brand')}
+              disabled={isProcessing}
+              className="px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-md shadow-sm hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center gap-1"
+            >
+              <Sparkles className="w-3 h-3" />
+              Meir på merkevaren
+            </button>
+          )}
           <button
             onClick={() => handleAIEdit('shorter')}
             disabled={isProcessing}
