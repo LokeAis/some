@@ -325,6 +325,73 @@ ${sampleText}`;
     }
   });
 
+  // LLM-dommar: scorar kor godt eit generert tekststykke treff den definerte merkevarestemma.
+  app.post("/api/score-fidelity", async (req, res) => {
+    try {
+      const { content, brandVoice } = req.body;
+      const apiKey = getApiKey(req);
+
+      if (!apiKey) {
+        return res.status(401).json({ error: "API-nøkkel manglar. Lim inn nøkkelen din i menyen til venstre." });
+      }
+      if (!content || content.trim() === '') {
+        return res.status(400).json({ error: "Manglar tekst å vurdere." });
+      }
+      const formattedBrandVoice = formatBrandVoice(brandVoice);
+      if (!formattedBrandVoice.trim()) {
+        return res.status(400).json({ error: "Du må ha ein Brand Voice-profil for denne merkevaren for å måle stemme-treff." });
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+
+      const prompt = `Du er ein streng, objektiv språkrøktar. Vurder KOR GODT teksten under treff den definerte merkevarestemma.
+
+MERKEVARESTEMME (fasiten):
+${formattedBrandVoice}
+
+TEKST SOM SKAL VURDERAST:
+"""
+${content}
+"""
+
+Gi:
+- score: eit heiltal 0–100 (100 = perfekt treff på tone, rytme, vokabular og reglar; trekk hardt for brot på forbodne fraser og DONTs).
+- verdict: éi kort, konkret setning som oppsummerer treffet.
+- biggest_deviation: det ENE viktigaste avviket frå stemma, formulert som ei handlingsretta forbetring. Tom streng dersom teksten treff perfekt.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction: "Du er ein objektiv evaluator. Baser scoren strengt på samsvar mellom teksten og den oppgitte stemma. Ikkje vurder om innhaldet er bra generelt – berre om det høyrest ut som merkevaren.",
+          temperature: 0.2,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              score: { type: Type.INTEGER },
+              verdict: { type: Type.STRING },
+              biggest_deviation: { type: Type.STRING }
+            },
+            required: ["score", "verdict", "biggest_deviation"]
+          }
+        }
+      });
+
+      if (!response.text) {
+        throw new Error("Tom respons frå Gemini API");
+      }
+      const text = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(text);
+      // Klem scoren til 0–100 for trygg visning.
+      parsed.score = Math.max(0, Math.min(100, Math.round(Number(parsed.score) || 0)));
+      res.json(parsed);
+    } catch (error) {
+      const errResponse = handleGeminiError(error, "Feil ved måling av stemme-treff");
+      res.status(errResponse.status).json({ error: errResponse.error });
+    }
+  });
+
   app.post("/api/analyze-site", async (req, res) => {
     try {
       const { url, manualText, useManualText, language, audience, tone } = req.body;
@@ -1176,9 +1243,9 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
 
   app.post("/api/edit-text", async (req, res) => {
     try {
-      const { text, action } = req.body;
+      const { text, action, brandVoice } = req.body;
       const apiKey = getApiKey(req);
-      
+
       if (!apiKey) {
         return res.status(401).json({ error: "API-nøkkel manglar." });
       }
@@ -1187,9 +1254,25 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
       }
 
       const ai = new GoogleGenAI({ apiKey });
-      
+
       let prompt = "";
       switch (action) {
+        case 'on_brand': {
+          const formattedBrandVoice = formatBrandVoice(brandVoice);
+          if (!formattedBrandVoice.trim()) {
+            return res.status(400).json({ error: "Du må ha ein Brand Voice-profil for denne merkevaren for å justere mot stemma." });
+          }
+          prompt = `Skriv om følgjande tekst slik at den treff merkevarestemma under så godt som mogleg. Behald MEININGA og om lag same lengd – juster berre tone, rytme, vokabular og tiltaleform. Bryt ALDRI dei forbodne frasene.
+
+MERKEVARESTEMME (fasiten):
+${formattedBrandVoice}
+
+TEKST SOM SKAL JUSTERAST:
+"${text}"
+
+Returner KUN den omskrivne teksten, utan introduksjon eller forklaring.`;
+          break;
+        }
         case 'shorter':
           prompt = `Gjer følgjande tekst kortare og meir konsis, men hald på hovudbodskapen:\n\n"${text}"`;
           break;

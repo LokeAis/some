@@ -7,6 +7,7 @@ import { saveArticle } from '../services/articleDb';
 import { ArticleData } from '../types';
 import { ErrorMessage } from '../../../components/ErrorMessage';
 import { AITextEditor } from '../../../components/AITextEditor';
+import { FidelityScore } from '../../../components/FidelityScore';
 
 interface ArticleWizardProps {
   apiKey: string;
@@ -352,6 +353,7 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
                 value={outline}
                 onChange={setOutline}
                 apiKey={apiKey}
+                brandVoice={voiceProfile}
                 placeholder="Disposisjonen kjem her..."
                 className="h-48 font-mono text-sm"
                 disabled={isGeneratingOutline}
@@ -383,6 +385,7 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
                 value={article}
                 onChange={setArticle}
                 apiKey={apiKey}
+                brandVoice={voiceProfile}
                 placeholder="Artikkelen kjem her..."
                 className="h-96 font-mono text-sm"
                 disabled={isGeneratingArticle}
@@ -420,6 +423,9 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
                   Lagre artikkel
                 </button>
               </div>
+
+              {/* Brand voice fidelity (Grep 2) */}
+              <FidelityScore content={article} brandVoice={voiceProfile} />
 
               {generatedImagePrompt && (
                 <motion.div 

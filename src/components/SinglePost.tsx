@@ -7,6 +7,7 @@ import { savePost, updatePost, BrandData } from '../lib/db';
 import { HelpTooltip } from './HelpTooltip';
 import { ErrorMessage } from './ErrorMessage';
 import { AITextEditor } from './AITextEditor';
+import { FidelityScore } from './FidelityScore';
 import Markdown from 'react-markdown';
 
 interface Props {
@@ -560,6 +561,7 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
               value={editedText}
               onChange={setEditedText}
               apiKey={localStorage.getItem('gemini_api_key') || ''}
+              brandVoice={brandVoice}
               className="min-h-[12rem] text-sm text-neutral-900 bg-neutral-50 border-indigo-300"
             />
             <div className="flex justify-end">
@@ -1129,6 +1131,11 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
                           <span>{saveSuccess ? 'Lagra!' : 'Lagre'}</span>
                         </button>
                       )}
+                    </div>
+
+                    {/* Brand voice fidelity (Grep 2): on-demand stemme-treff-score */}
+                    <div className="px-4 pb-4">
+                      <FidelityScore content={editedText} brandVoice={brandVoice} />
                     </div>
                   </div>
                 </div>

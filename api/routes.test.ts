@@ -83,6 +83,46 @@ describe('analyze-brand-voice input (tekst eller URL)', () => {
   });
 });
 
+describe('score-fidelity (stemme-treff)', () => {
+  it('utan nøkkel gir 401', async () => {
+    const res = await request(app).post('/api/score-fidelity').send({ content: 'tekst', brandVoice: { summary: 'x' } });
+    expect(res.status).toBe(401);
+  });
+
+  it('med nøkkel men utan content gir 400', async () => {
+    const res = await request(app)
+      .post('/api/score-fidelity')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({ brandVoice: { summary: 'x' } });
+    expect(res.status).toBe(400);
+  });
+
+  it('med nøkkel og content men utan brand voice gir 400', async () => {
+    const res = await request(app)
+      .post('/api/score-fidelity')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({ content: 'litt tekst', brandVoice: null });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/brand voice/i);
+  });
+});
+
+describe('edit-text on_brand (Grep 3)', () => {
+  it('utan nøkkel gir 401', async () => {
+    const res = await request(app).post('/api/edit-text').send({ text: 'hei', action: 'on_brand' });
+    expect(res.status).toBe(401);
+  });
+
+  it('on_brand utan brand voice gir 400', async () => {
+    const res = await request(app)
+      .post('/api/edit-text')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({ text: 'hei', action: 'on_brand', brandVoice: null });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/brand voice/i);
+  });
+});
+
 describe('Ukjend rute', () => {
   it('gir 404', async () => {
     const res = await request(app).get('/api/finst-ikkje');
