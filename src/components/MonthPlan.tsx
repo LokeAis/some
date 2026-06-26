@@ -287,6 +287,57 @@ export function MonthPlan({ analysisData, initialPlan, onSelectPost, onGoToAnaly
     document.body.removeChild(link);
   };
 
+  // Kalender-eksport (.ics): kvart planpunkt blir ei heildags-hending, dag 1 = i dag.
+  // Importer i Google Calendar / Outlook for å planleggje publiseringa.
+  const exportToICS = () => {
+    if (!plan || !Array.isArray(plan) || plan.length === 0) return;
+
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const toICSDate = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+    const escapeICS = (s: string) =>
+      (s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const dtstamp = `${toICSDate(new Date())}T000000Z`;
+
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//SoMe-assistenten//Innhaldsplan//NO',
+      'CALSCALE:GREGORIAN'
+    ];
+
+    plan.forEach((item, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + (item.day - 1));
+      const dEnd = new Date(d);
+      dEnd.setDate(d.getDate() + 1);
+      const summary = `${item.channel}: ${item.theme}`;
+      const desc = `Mål: ${item.post_goal}\nFormat: ${item.format}\nVinkel: ${item.angle}\nCTA: ${item.cta}${item.notes ? `\nNotat: ${item.notes}` : ''}`;
+      lines.push(
+        'BEGIN:VEVENT',
+        `UID:some-plan-${start.getTime()}-${i}@some-assistenten`,
+        `DTSTAMP:${dtstamp}`,
+        `DTSTART;VALUE=DATE:${toICSDate(d)}`,
+        `DTEND;VALUE=DATE:${toICSDate(dEnd)}`,
+        `SUMMARY:${escapeICS(summary)}`,
+        `DESCRIPTION:${escapeICS(desc)}`,
+        'END:VEVENT'
+      );
+    });
+    lines.push('END:VCALENDAR');
+
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'innhaldsplan.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const exportToPDF = async () => {
     if (!plan || !Array.isArray(plan) || !resultRef.current) return;
     setSaving(true); // Reuse saving state for loading indicator
@@ -620,6 +671,15 @@ export function MonthPlan({ analysisData, initialPlan, onSelectPost, onGoToAnaly
                 >
                   <FileText className="w-4 h-4" />
                   <span>PDF</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={exportToICS}
+                  className="px-4 py-2.5 bg-white border border-neutral-200 text-neutral-700 font-medium rounded-xl hover:bg-neutral-50 transition-all flex items-center justify-center space-x-2 shadow-sm"
+                  title="Last ned som kalenderfil (.ics) – dag 1 = i dag"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>Kalender</span>
                 </button>
               </>
             )}
