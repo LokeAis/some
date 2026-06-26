@@ -21,7 +21,7 @@ import { BrandData, AnalysisData, PlanData, PostData, updateBrand } from './lib/
 import { ArticleData } from './features/articles/types';
 
 export default function App() {
-  const { user, signIn, logOut } = useAuth();
+  const { user, signIn, logOut, isAdmin } = useAuth();
   const [copiedShare, setCopiedShare] = useState(false);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -141,6 +141,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('some_activeTab', activeTab);
   }, [activeTab]);
+
+  // Kvalitet-fana er berre for admin – flytt andre bort (t.d. om fana låg lagra frå før).
+  useEffect(() => {
+    if (!isAdmin && activeTab === 'quality') {
+      setActiveTab('analysis');
+    }
+  }, [isAdmin, activeTab]);
 
   useEffect(() => {
     if (analysisData) {
@@ -451,19 +458,21 @@ export default function App() {
             </button>
           </div>
 
-          <div className="pt-4 mt-4 border-t border-neutral-100">
-            <button
-              onClick={() => { setActiveTab('quality'); setIsMobileMenuOpen(false); }}
-              className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                activeTab === 'quality'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-              }`}
-            >
-              <Activity className={`w-5 h-5 ${activeTab === 'quality' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-              <span>Kvalitet & Overvåking</span>
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="pt-4 mt-4 border-t border-neutral-100">
+              <button
+                onClick={() => { setActiveTab('quality'); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  activeTab === 'quality'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                }`}
+              >
+                <Activity className={`w-5 h-5 ${activeTab === 'quality' ? 'text-indigo-100' : 'text-neutral-400'}`} />
+                <span>Kvalitet & Overvåking</span>
+              </button>
+            </div>
+          )}
         </nav>
 
         <div className="p-4 mt-auto border-t border-neutral-100 space-y-2">
@@ -920,7 +929,7 @@ export default function App() {
                 />
               </motion.div>
             )}
-            {activeTab === 'quality' && (
+            {activeTab === 'quality' && isAdmin && (
               <motion.div
                 key="quality"
                 initial={{ opacity: 0, y: 10 }}
@@ -1029,15 +1038,17 @@ export default function App() {
               <FolderOpen className={`w-6 h-6 mb-1 ${activeTab === 'projects' ? 'fill-indigo-50' : ''}`} />
               <span className="text-[10px] font-medium">Prosjekt</span>
             </button>
-            <button
-              onClick={() => setActiveTab('quality')}
-              className={`flex flex-col items-center justify-center w-16 h-14 rounded-xl transition-colors ${
-                activeTab === 'quality' ? 'text-indigo-600' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
-              }`}
-            >
-              <Activity className={`w-6 h-6 mb-1 ${activeTab === 'quality' ? 'fill-indigo-50' : ''}`} />
-              <span className="text-[10px] font-medium">Kvalitet</span>
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('quality')}
+                className={`flex flex-col items-center justify-center w-16 h-14 rounded-xl transition-colors ${
+                  activeTab === 'quality' ? 'text-indigo-600' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
+              >
+                <Activity className={`w-6 h-6 mb-1 ${activeTab === 'quality' ? 'fill-indigo-50' : ''}`} />
+                <span className="text-[10px] font-medium">Kvalitet</span>
+              </button>
+            )}
           </div>
         </div>
       </main>

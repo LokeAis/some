@@ -6,6 +6,7 @@ import { auth, db, googleProvider } from '../lib/firebase';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   signIn: () => Promise<void>;
   logOut: () => Promise<void>;
 }
@@ -14,15 +15,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      let role = 'user';
       if (currentUser) {
         // Ensure user document exists in Firestore
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
-        
+
         if (!userSnap.exists()) {
           try {
             const userData: Record<string, any> = {
@@ -38,9 +41,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch (error) {
             console.error("Error creating user document:", error);
           }
+        } else {
+          role = userSnap.data().role || 'user';
         }
       }
       setUser(currentUser);
+      setIsAdmin(role === 'admin');
       setLoading(false);
     });
 
@@ -73,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, logOut }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, signIn, logOut }}>
       {!loading && children}
     </AuthContext.Provider>
   );
