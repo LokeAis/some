@@ -1,0 +1,325 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string (optional)
+    //   - role: string (required, 'user' or 'admin')
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: brands
+    // Document ID: {brandId}
+    // Path: /users/{userId}/brands/{brandId}
+    // Fields:
+    //   - uid: string (required)
+    //   - name: string (required)
+    //   - industry: string (optional)
+    //   - language: string (optional)
+    //   - tone_of_voice: string (optional)
+    //   - target_audience: string (optional)
+    //   - website_url: string (optional)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp (optional)
+    //
+    // Collection: analyses
+    // Document ID: {analysisId}
+    // Path: /users/{userId}/brands/{brandId}/analyses/{analysisId}
+    // Fields:
+    //   - uid: string (required)
+    //   - url: string (optional)
+    //   - company_summary: string (required)
+    //   - products_services: list of strings (optional)
+    //   - target_audience: list of strings (optional)
+    //   - tone_of_voice: string (optional)
+    //   - usp: list of strings (optional)
+    //   - content_pillars: list of strings (optional)
+    //   - cta_suggestions: list of strings (optional)
+    //   - brand_risks_or_gaps: list of strings (optional)
+    //   - confidence_notes: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: plans
+    // Document ID: {planId}
+    // Path: /users/{userId}/brands/{brandId}/plans/{planId}
+    // Fields:
+    //   - uid: string (required)
+    //   - analysisId: string (optional)
+    //   - plan_summary: string (required)
+    //   - posts: list of objects (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: posts
+    // Document ID: {postId}
+    // Path: /users/{userId}/brands/{brandId}/posts/{postId}
+    // Fields:
+    //   - uid: string (required)
+    //   - planId: string (optional)
+    //   - channel: string (required)
+    //   - hook: string (required)
+    //   - main_caption: string (required)
+    //   - short_version: string (optional)
+    //   - hashtag_suggestions: list of strings (optional)
+    //   - image_prompt: string (optional)
+    //   - alternative_variant: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Global Safety Net
+    // ===============================================================
+    match /{document=**} { allow read, write: if false; }
+
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          ('email' in request.auth.token && request.auth.token.email == "loydks@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isStringList(listData, maxSize) {
+      return listData is list && listData.size() <= maxSize;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'email', 'role', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             data.email is string && isValidEmail(data.email) && data.email.size() < 150 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
+             data.role in ['user', 'admin'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidBrand() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'name', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             (!('industry' in data) || (data.industry is string && data.industry.size() < 200)) &&
+             (!('language' in data) || (data.language is string && data.language.size() < 100)) &&
+             (!('tone_of_voice' in data) || (data.tone_of_voice is string && data.tone_of_voice.size() < 1000)) &&
+             (!('target_audience' in data) || (data.target_audience is string && data.target_audience.size() < 1000)) &&
+             (!('website_url' in data) || (data.website_url is string && data.website_url.size() < 500)) &&
+             data.createdAt is timestamp &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidAnalysis() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'company_summary', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             (!('url' in data) || (data.url is string && data.url.size() < 500)) &&
+             data.company_summary is string && data.company_summary.size() < 5000 &&
+             (!('products_services' in data) || isStringList(data.products_services, 50)) &&
+             (!('target_audience' in data) || isStringList(data.target_audience, 50)) &&
+             (!('tone_of_voice' in data) || (data.tone_of_voice is string && data.tone_of_voice.size() < 1000)) &&
+             (!('usp' in data) || isStringList(data.usp, 50)) &&
+             (!('content_pillars' in data) || isStringList(data.content_pillars, 50)) &&
+             (!('cta_suggestions' in data) || isStringList(data.cta_suggestions, 50)) &&
+             (!('brand_risks_or_gaps' in data) || isStringList(data.brand_risks_or_gaps, 50)) &&
+             (!('golden_nuggets' in data) || isStringList(data.golden_nuggets, 50)) &&
+             (!('confidence_notes' in data) || (data.confidence_notes is string && data.confidence_notes.size() < 2000)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPlan() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'plan_summary', 'posts', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             (!('analysisId' in data) || (data.analysisId is string && data.analysisId.size() < 100)) &&
+             data.plan_summary is string && data.plan_summary.size() < 5000 &&
+             data.posts is list && data.posts.size() <= 100 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPost() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'channel', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             (!('planId' in data) || (data.planId is string && data.planId.size() < 100)) &&
+             (!('content_type' in data) || (data.content_type is string && data.content_type.size() < 50)) &&
+             data.channel is string && data.channel.size() < 100 &&
+             (!('hook' in data) || (data.hook is string && data.hook.size() < 2000)) &&
+             (!('main_caption' in data) || (data.main_caption is string && data.main_caption.size() < 50000)) &&
+             (!('short_version' in data) || (data.short_version is string && data.short_version.size() < 5000)) &&
+             (!('hashtag_suggestions' in data) || isStringList(data.hashtag_suggestions, 50)) &&
+             (!('image_prompt' in data) || (data.image_prompt is string && data.image_prompt.size() < 5000)) &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() < 2000)) &&
+             (!('alternative_variant' in data) || (data.alternative_variant is string && data.alternative_variant.size() < 50000)) &&
+             (!('article_title' in data) || (data.article_title is string && data.article_title.size() < 1000)) &&
+             (!('url_slug' in data) || (data.url_slug is string && data.url_slug.size() < 1000)) &&
+             (!('meta_title' in data) || (data.meta_title is string && data.meta_title.size() < 1000)) &&
+             (!('meta_description' in data) || (data.meta_description is string && data.meta_description.size() < 2000)) &&
+             (!('article_body' in data) || (data.article_body is string && data.article_body.size() < 100000)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidVoiceProfile() {
+      let data = request.resource.data;
+      return hasRequiredFields(['brandId', 'uid', 'summary', 'dos', 'donts', 'referenceTexts', 'createdAt', 'updatedAt']) &&
+             data.brandId is string && data.brandId.size() > 0 &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.summary is string && data.summary.size() < 5000 &&
+             data.dos is list && data.dos.size() <= 20 &&
+             data.donts is list && data.donts.size() <= 20 &&
+             data.referenceTexts is list && data.referenceTexts.size() <= 3 &&
+             data.createdAt is number &&
+             data.updatedAt is number;
+    }
+
+    function isValidArticle() {
+      let data = request.resource.data;
+      return hasRequiredFields(['brandId', 'uid', 'topic', 'outline', 'content', 'status', 'createdAt', 'updatedAt']) &&
+             data.brandId is string && data.brandId.size() > 0 &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.topic is string && data.topic.size() < 1000 &&
+             data.outline is string && data.outline.size() < 10000 &&
+             data.content is string && data.content.size() < 100000 &&
+             data.status in ['draft', 'ready', 'published'] &&
+             data.createdAt is number &&
+             data.updatedAt is number;
+    }
+
+    function isValidAILog() {
+      let data = request.resource.data;
+      return hasRequiredFields(['flow', 'version', 'model', 'timestamp']) &&
+             data.flow is string &&
+             data.version is string &&
+             data.model is string &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidTestCase() {
+      let data = request.resource.data;
+      return hasRequiredFields(['flow', 'input', 'createdAt']) &&
+             data.flow is string &&
+             data.input is map &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidEvaluation() {
+      let data = request.resource.data;
+      return hasRequiredFields(['testCaseId', 'logId', 'scores', 'status', 'timestamp']) &&
+             data.testCaseId is string &&
+             data.logId is string &&
+             data.scores is map &&
+             data.status in ['pass', 'fail'] &&
+             data.timestamp is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /voiceProfiles/{profileId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidVoiceProfile() && uidUnchanged();
+      allow update: if isAuthenticated() && isValidVoiceProfile() && isDocOwner() && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /articles/{articleId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidArticle() && uidUnchanged();
+      allow update: if isAuthenticated() && isValidArticle() && isDocOwner() && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /aiLogs/{logId} {
+      allow read, write: if isAdmin();
+      allow create: if isAuthenticated() && isValidAILog();
+    }
+
+    match /testCases/{testCaseId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /evaluations/{evaluationId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser() && isOwner(userId) && uidUnchanged() && (request.resource.data.role == 'user' || isAdmin());
+      allow update: if isAuthenticated() && isValidUser() && isOwner(userId) && uidNotModified() && (request.resource.data.role == resource.data.role || isAdmin()) && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isOwner(userId) || isAdmin();
+
+      match /brands/{brandId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isAuthenticated() && isValidBrand() && isOwner(userId) && uidUnchanged();
+        allow update: if isAuthenticated() && isValidBrand() && isOwner(userId) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if isOwner(userId) || isAdmin();
+
+        match /analyses/{analysisId} {
+          allow read: if isOwner(userId) || isAdmin();
+          allow create: if isAuthenticated() && isValidAnalysis() && isOwner(userId) && uidUnchanged();
+          allow update: if isAuthenticated() && isValidAnalysis() && isOwner(userId) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+          allow delete: if isOwner(userId) || isAdmin();
+        }
+
+        match /plans/{planId} {
+          allow read: if isOwner(userId) || isAdmin();
+          allow create: if isAuthenticated() && isValidPlan() && isOwner(userId) && uidUnchanged();
+          allow update: if isAuthenticated() && isValidPlan() && isOwner(userId) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+          allow delete: if isOwner(userId) || isAdmin();
+        }
+
+        match /posts/{postId} {
+          allow read: if isOwner(userId) || isAdmin();
+          allow create: if isAuthenticated() && isValidPost() && isOwner(userId) && uidUnchanged();
+          allow update: if isAuthenticated() && isValidPost() && isOwner(userId) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+          allow delete: if isOwner(userId) || isAdmin();
+        }
+      }
+    }
+  }
+}
