@@ -77,13 +77,6 @@ service cloud.firestore {
     // ===============================================================
     match /{document=**} { allow read, write: if false; }
 
-    function isValidId(id) { 
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
-    }
-    function incoming() { return request.resource.data; }
-    function existing() { return resource.data; }
-    function isSignedIn() { return request.auth != null; }
-
     // ===============================================================
     // Helper Functions
     // ===============================================================
@@ -235,33 +228,6 @@ service cloud.firestore {
              data.updatedAt is number;
     }
 
-    function isValidAILog() {
-      let data = request.resource.data;
-      return hasRequiredFields(['flow', 'version', 'model', 'timestamp']) &&
-             data.flow is string &&
-             data.version is string &&
-             data.model is string &&
-             data.timestamp is timestamp;
-    }
-
-    function isValidTestCase() {
-      let data = request.resource.data;
-      return hasRequiredFields(['flow', 'input', 'createdAt']) &&
-             data.flow is string &&
-             data.input is map &&
-             data.createdAt is timestamp;
-    }
-
-    function isValidEvaluation() {
-      let data = request.resource.data;
-      return hasRequiredFields(['testCaseId', 'logId', 'scores', 'status', 'timestamp']) &&
-             data.testCaseId is string &&
-             data.logId is string &&
-             data.scores is map &&
-             data.status in ['pass', 'fail'] &&
-             data.timestamp is timestamp;
-    }
-
     // ===============================================================
     // Rules
     // ===============================================================
@@ -280,9 +246,9 @@ service cloud.firestore {
       allow delete: if isDocOwner() || isAdmin();
     }
 
+    // Server-side logging er fjerna; aiLogs er no berre eit admin-arkiv.
     match /aiLogs/{logId} {
       allow read, write: if isAdmin();
-      allow create: if isAuthenticated() && isValidAILog();
     }
 
     match /testCases/{testCaseId} {

@@ -21,14 +21,6 @@ describe('GET /api/health', () => {
   });
 });
 
-describe('GET /api/check-key', () => {
-  it('returnerer alltid geminiKey=false (BYOK)', async () => {
-    const res = await request(app).get('/api/check-key');
-    expect(res.status).toBe(200);
-    expect(res.body.geminiKey).toBe(false);
-  });
-});
-
 describe('Autentisering på AI-ruter', () => {
   it('analyze-brand-voice utan nøkkel gir 401', async () => {
     const res = await request(app)

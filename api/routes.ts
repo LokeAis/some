@@ -3,41 +3,13 @@ import rateLimit from "express-rate-limit";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import * as cheerio from "cheerio";
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { firebaseConfig } from "./firebaseConfig.js";
 
 dotenv.config();
 
-// Initialize Firebase for logging
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
-
-const SCHEMA_VERSIONS = {
-  BRAND_DNA: "1.0.0",
-  CONTENT_PLANNER: "1.0.0",
-  DRAFT_FACT_SAVE: "1.0.0"
-};
-
-async function logAIInteraction(data: {
-  flow: string;
-  version: string;
-  model: string;
-  input: any;
-  output: any;
-  latency: number;
-  groundingUsed: boolean;
-  status: string;
-}) {
-  try {
-    await addDoc(collection(db, "aiLogs"), {
-      ...data,
-      timestamp: serverTimestamp()
-    });
-  } catch (error) {
-    console.error("Error logging AI interaction:", error);
-  }
-}
+// Merk: server-side aiLogs-logging er fjerna med vilje. Skrivingane vart alltid
+// blokkerte av firestore-reglane (serveren er uautentisert) og kosta berre latens
+// på kvar AI-førespurnad. Kvalitet-panelet sine manuelle evalueringar lever vidare
+// klient-side. Skal server-logging tilbake, må det skje via Admin SDK + service account.
 
 function getApiKey(req?: express.Request) {
   if (req && req.headers['x-api-key']) {
@@ -141,7 +113,7 @@ export function registerApiRoutes(app: express.Express) {
   app.use(express.json({ limit: '5mb' }));
 
   // Rate limiting: vern dei dyre AI- og skrape-endepunkta mot misbruk.
-  // Berre POST-rutene vert avgrensa (helse-/check-key er GET og slepp gjennom).
+  // Berre POST-rutene vert avgrensa (helse-endepunktet er GET og slepp gjennom).
   // NB: tellaren ligg i minne per instans. På serverlause plattformar (Vercel)
   // eller med fleire instansar er ikkje grensa delt globalt, men det stoppar
   // enkle burst-/skrape-angrep. For ei hard global grense trengst Redis/Upstash.
@@ -172,12 +144,6 @@ export function registerApiRoutes(app: express.Express) {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
-  app.get("/api/check-key", (req, res) => {
-    // Returnerer alltid false her sidan vi krev at brukaren legg inn sin eigen nøkkel
-    res.json({ 
-      geminiKey: false
-    });
-  });
 
 const formatBrandVoice = (bv: any) => {
   if (!bv) return '';
@@ -210,11 +176,8 @@ const formatBrandVoice = (bv: any) => {
 };
   
   app.post("/api/analyze-brand-voice", async (req, res) => {
-    const startTime = Date.now();
-    const flow = "BRAND_DNA";
-    const version = SCHEMA_VERSIONS.BRAND_DNA;
     const model = "gemini-3.5-flash";
-    
+
     try {
       const { samples, url } = req.body;
       const apiKey = getApiKey(req);
@@ -295,31 +258,8 @@ ${sampleText}`;
         }
       }
 
-      const latency = Date.now() - startTime;
-      await logAIInteraction({
-        flow,
-        version,
-        model,
-        input: { samples: sampleText.substring(0, 500), url },
-        output: parsed,
-        latency,
-        groundingUsed: false,
-        status: "success"
-      });
-
       res.json({ dna: parsed });
     } catch (error) {
-      const latency = Date.now() - startTime;
-      await logAIInteraction({
-        flow,
-        version,
-        model,
-        input: { samples: req.body.samples?.substring(0, 500), url: req.body.url },
-        output: { error: error instanceof Error ? error.message : String(error) },
-        latency,
-        groundingUsed: false,
-        status: "error"
-      });
       const errResponse = handleGeminiError(error, "Feil ved analyse av Brand Voice");
       res.status(errResponse.status).json({ error: errResponse.error });
     }
@@ -657,9 +597,6 @@ Reglar:
   });
 
   app.post("/api/month-plan", async (req, res) => {
-    const startTime = Date.now();
-    const flow = "CONTENT_PLANNER";
-    const version = SCHEMA_VERSIONS.CONTENT_PLANNER;
     const model = "gemini-3.5-flash";
 
     try {
@@ -747,40 +684,14 @@ ${JSON.stringify(analysis, null, 2)}
         }
       }
 
-      const latency = Date.now() - startTime;
-      await logAIInteraction({
-        flow,
-        version,
-        model,
-        input: { channels, postsPerWeek, goal },
-        output: parsed,
-        latency,
-        groundingUsed: false,
-        status: "success"
-      });
-
       res.json({ plan: parsed.posts, plan_summary: parsed.plan_summary });
     } catch (error) {
-      const latency = Date.now() - startTime;
-      await logAIInteraction({
-        flow,
-        version,
-        model,
-        input: { channels: req.body.channels, goal: req.body.goal },
-        output: { error: error instanceof Error ? error.message : String(error) },
-        latency,
-        groundingUsed: false,
-        status: "error"
-      });
       const errResponse = handleGeminiError(error, "Feil ved laging av innhaldsplan");
       res.status(errResponse.status).json({ error: errResponse.error });
     }
   });
 
   app.post("/api/generate-post", async (req, res) => {
-    const startTime = Date.now();
-    const flow = "DRAFT_FACT_SAVE";
-    const version = SCHEMA_VERSIONS.DRAFT_FACT_SAVE;
     const model = "gemini-3.5-flash";
 
     try {
@@ -906,31 +817,8 @@ ${modification ? `<task_modification>\nBrukaren har bedt om følgjande endring p
         }
       }
 
-      const latency = Date.now() - startTime;
-      await logAIInteraction({
-        flow,
-        version,
-        model,
-        input: { theme, goal, contentType, requires_search },
-        output: parsed,
-        latency,
-        groundingUsed: !!requires_search,
-        status: "success"
-      });
-
       res.json(parsed);
     } catch (error) {
-      const latency = Date.now() - startTime;
-      await logAIInteraction({
-        flow,
-        version,
-        model,
-        input: { theme: req.body.theme, goal: req.body.goal, contentType: req.body.contentType },
-        output: { error: error instanceof Error ? error.message : String(error) },
-        latency,
-        groundingUsed: !!req.body.requires_search,
-        status: "error"
-      });
       const errResponse = handleGeminiError(error, "Feil ved laging av innhald");
       res.status(errResponse.status).json({ error: errResponse.error });
     }
