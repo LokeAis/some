@@ -1,23 +1,47 @@
-import { useState, useEffect } from 'react';
-import { Gauge, Loader2, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Gauge, Loader2, RefreshCw, Wand2, TrendingUp } from 'lucide-react';
+
+interface FidelityResult {
+  score: number;
+  verdict: string;
+  biggest_deviation: string;
+}
 
 interface Props {
   content: string;
   brandVoice: any;
+  /**
+   * Når satt: viser «Fiks automatisk»-knappen, som skriv om teksten mot
+   * stemmeprofilen (on_brand) og målar på nytt. Parent får den nye teksten her.
+   */
+  onContentChange?: (newText: string) => void;
 }
 
 /**
- * On-demand brand voice fidelity-score (Grep 2). Kallar /api/score-fidelity og
- * viser score 0–100 + verdict + største avvik. Delt mellom SinglePost og ArticleWizard.
+ * On-demand brand voice fidelity-score (Grep 2) + auto-fiks-sløyfe.
+ * Kallar /api/score-fidelity og viser score 0–100 + verdict + største avvik.
+ * Delt mellom SinglePost og ArticleWizard.
  */
-export function FidelityScore({ content, brandVoice }: Props) {
-  const [fidelity, setFidelity] = useState<{ score: number; verdict: string; biggest_deviation: string } | null>(null);
+export function FidelityScore({ content, brandVoice, onContentChange }: Props) {
+  const [fidelity, setFidelity] = useState<FidelityResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fixing, setFixing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [displayScore, setDisplayScore] = useState(0);
+  const [improvedFrom, setImprovedFrom] = useState<number | null>(null);
+  // Når VI endrar teksten (auto-fiks) skal ikkje scoren nullstillast av content-effekten.
+  const skipResetRef = useRef<string | null>(null);
 
-  // Gammal score er ikkje gyldig når teksten endrar seg.
-  useEffect(() => { setFidelity(null); setError(null); }, [content]);
+  // Gammal score er ikkje gyldig når brukaren endrar teksten sjølv.
+  useEffect(() => {
+    if (skipResetRef.current === content) {
+      skipResetRef.current = null;
+      return;
+    }
+    setFidelity(null);
+    setError(null);
+    setImprovedFrom(null);
+  }, [content]);
 
   // Tell opp til scoren for ein liten "noko ekte skjedde under panseret"-effekt.
   useEffect(() => {
@@ -34,9 +58,24 @@ export function FidelityScore({ content, brandVoice }: Props) {
     return () => cancelAnimationFrame(raf);
   }, [fidelity]);
 
+  const scoreText = async (text: string): Promise<FidelityResult> => {
+    const apiKey = localStorage.getItem('gemini_api_key') || '';
+    const response = await fetch('/api/score-fidelity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+      body: JSON.stringify({ content: text, brandVoice })
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => null);
+      throw new Error(errData?.error || 'Klarte ikkje å måle stemme-treff');
+    }
+    return response.json();
+  };
+
   const handleScore = async () => {
     setError(null);
     setFidelity(null);
+    setImprovedFrom(null);
     if (!brandVoice) {
       setError('Du må definere ein Brand Voice-profil for denne kunden først (sjå "Brand Voice DNA").');
       return;
@@ -47,21 +86,44 @@ export function FidelityScore({ content, brandVoice }: Props) {
     }
     setLoading(true);
     try {
-      const apiKey = localStorage.getItem('gemini_api_key') || '';
-      const response = await fetch('/api/score-fidelity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-        body: JSON.stringify({ content, brandVoice })
-      });
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        throw new Error(errData?.error || 'Klarte ikkje å måle stemme-treff');
-      }
-      setFidelity(await response.json());
+      setFidelity(await scoreText(content));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein ukjend feil oppstod');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Auto-fiks: skriv om mot stemma (on_brand) og mål den nye teksten med ein gong.
+  const handleAutoFix = async () => {
+    if (!onContentChange || !fidelity) return;
+    setError(null);
+    setFixing(true);
+    const oldScore = fidelity.score;
+    try {
+      const apiKey = localStorage.getItem('gemini_api_key') || '';
+      const response = await fetch('/api/edit-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        body: JSON.stringify({ text: content, action: 'on_brand', brandVoice })
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error || 'Klarte ikkje å skrive om teksten');
+      }
+      const { editedText } = await response.json();
+      const newText = (editedText || '').trim();
+      if (!newText) throw new Error('Fekk tom tekst tilbake. Prøv igjen.');
+
+      const newResult = await scoreText(newText);
+      skipResetRef.current = newText;
+      onContentChange(newText);
+      setFidelity(newResult);
+      setImprovedFrom(oldScore);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ein ukjend feil oppstod');
+    } finally {
+      setFixing(false);
     }
   };
 
@@ -91,8 +153,13 @@ export function FidelityScore({ content, brandVoice }: Props) {
             <span className="text-[10px] font-medium opacity-70 mt-1">/ 100</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 text-sm font-semibold text-neutral-900">
+            <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
               <Gauge className="w-4 h-4 text-purple-500" /> Stemme-treff
+              {improvedFrom !== null && fidelity.score > improvedFrom && (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-2 py-0.5">
+                  <TrendingUp className="w-3 h-3" /> frå {improvedFrom}
+                </span>
+              )}
             </div>
             <p className="text-sm text-neutral-700 mt-1">{fidelity.verdict}</p>
             {fidelity.biggest_deviation && (
@@ -100,14 +167,26 @@ export function FidelityScore({ content, brandVoice }: Props) {
                 <span className="font-medium text-neutral-700">Største avvik:</span> {fidelity.biggest_deviation}
               </p>
             )}
-            <button
-              onClick={handleScore}
-              disabled={loading}
-              className="text-xs text-purple-600 hover:text-purple-700 font-medium mt-3 inline-flex items-center gap-1 disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-              Mål på nytt
-            </button>
+            <div className="flex items-center gap-4 mt-3">
+              {onContentChange && fidelity.score < 95 && (
+                <button
+                  onClick={handleAutoFix}
+                  disabled={fixing || loading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors disabled:opacity-50"
+                >
+                  {fixing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                  {fixing ? 'Skriv om og måler...' : 'Fiks automatisk'}
+                </button>
+              )}
+              <button
+                onClick={handleScore}
+                disabled={loading || fixing}
+                className="text-xs text-purple-600 hover:text-purple-700 font-medium inline-flex items-center gap-1 disabled:opacity-50"
+              >
+                {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                Mål på nytt
+              </button>
+            </div>
           </div>
         </div>
       )}

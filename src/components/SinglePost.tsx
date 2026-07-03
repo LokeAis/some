@@ -1135,7 +1135,7 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
 
                     {/* Brand voice fidelity (Grep 2): on-demand stemme-treff-score */}
                     <div className="px-4 pb-4">
-                      <FidelityScore content={editedText} brandVoice={brandVoice} />
+                      <FidelityScore content={editedText} brandVoice={brandVoice} onContentChange={setEditedText} />
                     </div>
                   </div>
                 </div>

@@ -144,6 +144,23 @@ export function registerApiRoutes(app: express.Express) {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // Validerer brukaren sin Gemini-nøkkel med eit gratis models.list-kall (ingen tokens).
+  // Lar UI-et gi umiddelbar tilbakemelding når nøkkelen blir limt inn.
+  app.post("/api/validate-key", async (req, res) => {
+    const apiKey = getApiKey(req);
+    if (!apiKey) {
+      return res.status(401).json({ valid: false, error: "API-nøkkel manglar." });
+    }
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      await ai.models.list({ config: { pageSize: 1 } });
+      res.json({ valid: true });
+    } catch (error) {
+      const errResponse = handleGeminiError(error, "Klarte ikkje å validere nøkkelen");
+      res.status(errResponse.status).json({ valid: false, error: errResponse.error });
+    }
+  });
+
 
 const formatBrandVoice = (bv: any) => {
   if (!bv) return '';

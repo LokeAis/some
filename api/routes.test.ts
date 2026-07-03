@@ -115,6 +115,14 @@ describe('edit-text on_brand (Grep 3)', () => {
   });
 });
 
+describe('validate-key', () => {
+  it('utan nøkkel gir 401 med valid=false', async () => {
+    const res = await request(app).post('/api/validate-key').send();
+    expect(res.status).toBe(401);
+    expect(res.body.valid).toBe(false);
+  });
+});
+
 describe('Ukjend rute', () => {
   it('gir 404', async () => {
     const res = await request(app).get('/api/finst-ikkje');

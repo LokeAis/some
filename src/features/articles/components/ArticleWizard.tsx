@@ -421,8 +421,8 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
                 </button>
               </div>
 
-              {/* Brand voice fidelity (Grep 2) */}
-              <FidelityScore content={article} brandVoice={voiceProfile} />
+              {/* Brand voice fidelity (Grep 2) + auto-fiks mot stemma */}
+              <FidelityScore content={article} brandVoice={voiceProfile} onContentChange={setArticle} />
 
               {generatedImagePrompt && (
                 <motion.div 

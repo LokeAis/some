@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { LayoutDashboard, CalendarDays, PenTool, Sparkles, ChevronRight, LogIn, LogOut, User, Trash2, Share2, CircleCheck, FolderOpen, Facebook, Instagram, Linkedin, Twitter, Menu, X, Target, Building2, TrendingUp, FileText, Activity } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, PenTool, Sparkles, ChevronRight, LogIn, LogOut, User, Trash2, Share2, CircleCheck, FolderOpen, Menu, X, Target, Building2, TrendingUp, FileText, Activity, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrandSelector } from './components/BrandSelector';
 import { ConfirmModal } from './components/ConfirmModal';
@@ -29,6 +29,40 @@ export default function App() {
   const [apiKey, setApiKey] = useState(() => {
     return localStorage.getItem('gemini_api_key') || '';
   });
+  const [keyStatus, setKeyStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const [keyError, setKeyError] = useState<string | null>(null);
+
+  // Valider nøkkelen (debounced) så brukaren får svar i det han limer inn –
+  // ikkje først når første generering feilar.
+  useEffect(() => {
+    const trimmed = apiKey.trim();
+    if (!trimmed) {
+      setKeyStatus('idle');
+      setKeyError(null);
+      return;
+    }
+    setKeyStatus('checking');
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/validate-key', {
+          method: 'POST',
+          headers: { 'x-api-key': trimmed }
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.valid) {
+          setKeyStatus('valid');
+          setKeyError(null);
+        } else {
+          setKeyStatus('invalid');
+          setKeyError(data?.error || 'Nøkkelen ser ikkje ut til å vere gyldig.');
+        }
+      } catch {
+        setKeyStatus('invalid');
+        setKeyError('Fekk ikkje kontakt med serveren for å sjekke nøkkelen.');
+      }
+    }, 800);
+    return () => clearTimeout(t);
+  }, [apiKey]);
 
   // Initialize state from localStorage if available
   const [activeTab, setActiveTab] = useState<'analysis' | 'competitor' | 'plan' | 'post' | 'article' | 'projects' | 'voice' | 'trends' | 'quality'>(() => {
@@ -519,7 +553,9 @@ export default function App() {
                   <span>API-nøkkel</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {apiKey && <CircleCheck className="w-4 h-4 text-emerald-600" />}
+                  {apiKey && keyStatus === 'checking' && <Loader2 className="w-4 h-4 text-neutral-400 animate-spin" />}
+                  {apiKey && keyStatus === 'valid' && <CircleCheck className="w-4 h-4 text-emerald-600" />}
+                  {apiKey && keyStatus === 'invalid' && <AlertCircle className="w-4 h-4 text-red-500" />}
                   <ChevronRight className={`w-4 h-4 transition-transform ${showApiKeyInput ? 'rotate-90' : ''}`} />
                 </div>
               </button>
@@ -536,6 +572,21 @@ export default function App() {
                     placeholder="AIzaSy..."
                     className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   />
+                  {apiKey.trim() && keyStatus === 'checking' && (
+                    <p className="text-xs text-neutral-500 mt-2 flex items-center gap-1.5">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Sjekkar nøkkelen...
+                    </p>
+                  )}
+                  {apiKey.trim() && keyStatus === 'valid' && (
+                    <p className="text-xs text-emerald-700 mt-2 flex items-center gap-1.5">
+                      <CircleCheck className="w-3 h-3" /> Nøkkelen er gyldig og klar til bruk.
+                    </p>
+                  )}
+                  {apiKey.trim() && keyStatus === 'invalid' && (
+                    <p className="text-xs text-red-600 mt-2 flex items-start gap-1.5">
+                      <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /> {keyError}
+                    </p>
+                  )}
                   <p className="text-[10px] text-neutral-500 mt-2 leading-tight">
                     Lagrast lokalt i nettlesaren din. Brukast til å generere innhald.
                   </p>
@@ -947,27 +998,9 @@ export default function App() {
 
         {/* Footer */}
         <footer className="border-t border-neutral-200 bg-white py-8 px-6 md:px-10 mt-auto pb-24 md:pb-8">
-          <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="max-w-5xl mx-auto flex items-center justify-center">
             <div className="text-sm text-neutral-500">
               © {new Date().getFullYear()} SoMe-assistenten. Alle rettar reservert.
-            </div>
-            <div className="flex items-center space-x-4">
-              <a href="#" className="text-neutral-400 hover:text-indigo-600 transition-colors">
-                <Facebook className="w-5 h-5" />
-                <span className="sr-only">Facebook</span>
-              </a>
-              <a href="#" className="text-neutral-400 hover:text-indigo-600 transition-colors">
-                <Instagram className="w-5 h-5" />
-                <span className="sr-only">Instagram</span>
-              </a>
-              <a href="#" className="text-neutral-400 hover:text-indigo-600 transition-colors">
-                <Linkedin className="w-5 h-5" />
-                <span className="sr-only">LinkedIn</span>
-              </a>
-              <a href="#" className="text-neutral-400 hover:text-indigo-600 transition-colors">
-                <Twitter className="w-5 h-5" />
-                <span className="sr-only">X/Twitter</span>
-              </a>
             </div>
           </div>
         </footer>
