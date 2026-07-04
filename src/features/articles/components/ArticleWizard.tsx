@@ -23,7 +23,6 @@ interface ArticleWizardProps {
 export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initialArticle }: ArticleWizardProps) {
   const [topic, setTopic] = useState(initialArticle?.topic || '');
   const [useSearch, setUseSearch] = useState(false);
-  const [modelTier, setModelTier] = useState<'standard' | 'premium'>('standard');
   const [outline, setOutline] = useState(initialArticle?.outline || '');
   const [article, setArticle] = useState(initialArticle?.content || '');
   const [status, setStatus] = useState<'draft' | 'ready' | 'published'>(initialArticle?.status || 'draft');
@@ -73,8 +72,7 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
         body: JSON.stringify({
           topic,
           brandVoice: voiceProfile,
-          useSearch,
-          modelTier
+          useSearch
         })
       });
 
@@ -118,8 +116,7 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
           topic,
           outline,
           brandVoice: voiceProfile,
-          useSearch,
-          modelTier
+          useSearch
         })
       });
 
@@ -323,38 +320,6 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setModelTier('standard')}
-                  className={`flex-1 p-4 rounded-lg border-2 text-left transition-colors ${
-                    modelTier === 'standard' 
-                      ? 'border-purple-600 bg-purple-50' 
-                      : 'border-gray-200 hover:border-purple-200'
-                  }`}
-                >
-                  <div className="font-medium text-gray-900 flex items-center gap-2">
-                    🚀 Standard (Flash Lite)
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Rask og rimeleg. Perfekt for enkle artiklar, lister og utkast.
-                  </div>
-                </button>
-                <button
-                  onClick={() => setModelTier('premium')}
-                  className={`flex-1 p-4 rounded-lg border-2 text-left transition-colors ${
-                    modelTier === 'premium' 
-                      ? 'border-purple-600 bg-purple-50' 
-                      : 'border-gray-200 hover:border-purple-200'
-                  }`}
-                >
-                  <div className="font-medium text-gray-900 flex items-center gap-2">
-                    ✨ Premium (Pro)
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Høgaste kvalitet. Perfekt for djupe guidar og "cornerstone"-innhald.
-                  </div>
-                </button>
-              </div>
             </div>
           </div>
 

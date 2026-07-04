@@ -1196,7 +1196,7 @@ STEG 2: Lag disposisjonen basert på den valde kategorien. Ikkje bruk ein standa
         config.tools = [{ googleSearch: {} }];
       }
 
-      const modelName = modelTier === 'premium' ? "gemini-3.1-pro-preview" : "gemini-3.5-flash";
+      const modelName = "gemini-3.5-flash";
 
       const response = await ai.models.generateContent({
         model: modelName,
@@ -1268,7 +1268,7 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
         config.tools = [{ googleSearch: {} }];
       }
 
-      const modelName = modelTier === 'premium' ? "gemini-3.1-pro-preview" : "gemini-3.5-flash";
+      const modelName = "gemini-3.5-flash";
 
       const response = await ai.models.generateContent({
         model: modelName,
@@ -1326,7 +1326,7 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
       if (useSearch) {
         config.tools = [{ googleSearch: {} }];
       }
-      const modelName = modelTier === 'premium' ? "gemini-3.1-pro-preview" : "gemini-3.5-flash";
+      const modelName = "gemini-3.5-flash";
 
       const stream = await ai.models.generateContentStream({
         model: modelName,
