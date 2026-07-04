@@ -899,6 +899,102 @@ ${modification ? `<task_modification>\nBrukaren har bedt om følgjande endring p
     }
   });
 
+  // Gjenbruk: transformer eksisterande innhald (URL eller limt tekst) til
+  // 2–3 publiseringsklare utkast for ein annan kanal, med lynanalyse først.
+  app.post("/api/repurpose", async (req, res) => {
+    try {
+      const { url, text, channel, brandVoice, brandProfile } = req.body;
+      const apiKey = getApiKey(req);
+
+      if (!apiKey) {
+        return res.status(401).json({ error: "API-nøkkel manglar. Lim inn nøkkelen din i menyen til venstre." });
+      }
+      if (!channel) {
+        return res.status(400).json({ error: "Vel ein målkanal." });
+      }
+
+      let sourceText: string = (text || '').trim();
+      if (!sourceText && url) {
+        try {
+          sourceText = await fetchAndParse(url);
+        } catch (e: any) {
+          return res.status(e.status || 502).json({ error: `Klarte ikkje å hente innhaldet frå lenka: ${e.message}` });
+        }
+      }
+      if (!sourceText) {
+        return res.status(400).json({ error: "Lim inn ei lenke eller tekst du vil gjenbruke." });
+      }
+
+      const formattedBrandVoice = formatBrandVoice(brandVoice);
+      const ai = new GoogleGenAI({ apiKey });
+
+      const systemInstruction = `Du er ekspert på å gjenbruke innhald på tvers av sosiale kanalar. Du transformerer råmateriale til publiseringsklart innhald – du refererer ikkje berre til det.
+
+INTEGRITETSREGLAR (absolutte):
+- Dikt ALDRI opp fakta, prisar, resultat eller sitat. Arbeid berre med det som finst i råmaterialet.
+- Ingen clickbait. Éin tydeleg CTA per utkast. Eitt hovudgrep per utkast.
+- Utkasta skal vere ULIKE vinklar på same stoff – ikkje tre omformuleringar av same setning.
+
+${getChannelRules(channel)}
+${formattedBrandVoice ? `\nBruk følgjande Brand Voice DNA for tone, rytme og vokabular:\n${formattedBrandVoice}\n` : ''}`;
+
+      const prompt = `<råmateriale>
+${sourceText.substring(0, 20000)}
+</råmateriale>
+${brandProfile ? `\n<avsendar>\n${JSON.stringify(slimBrandProfile(brandProfile), null, 2)}\n</avsendar>\n` : ''}
+<oppgåve>
+1. Gjer ei lynanalyse av råmaterialet: hovudbodskap (éi setning), tonefall (kort), og 3–5 nøkkelpunkt.
+2. Skriv 2–3 publiseringsklare utkast for ${channel}, kvar med ulik vinkel (t.d. problem→løysing, spørsmål, nøkkelinnsikt). Følg kanalreglane nøye.
+</oppgåve>`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              analysis: {
+                type: Type.OBJECT,
+                properties: {
+                  main_message: { type: Type.STRING },
+                  tone: { type: Type.STRING },
+                  key_points: { type: Type.ARRAY, items: { type: Type.STRING } }
+                },
+                required: ["main_message", "tone", "key_points"]
+              },
+              drafts: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    angle: { type: Type.STRING, description: "Kva vinkel/grep dette utkastet brukar (kort etikett)." },
+                    text: { type: Type.STRING, description: "Publiseringsklar tekst, formatert slik han skal publiserast." },
+                    hashtags: { type: Type.ARRAY, items: { type: Type.STRING } }
+                  },
+                  required: ["angle", "text", "hashtags"]
+                }
+              }
+            },
+            required: ["analysis", "drafts"]
+          }
+        }
+      });
+
+      if (!response.text) {
+        throw new Error("Tom respons frå Gemini API");
+      }
+      const cleaned = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+      res.json(JSON.parse(cleaned));
+    } catch (error) {
+      const errResponse = handleGeminiError(error, "Feil ved gjenbruk av innhald");
+      res.status(errResponse.status).json({ error: errResponse.error });
+    }
+  });
+
   app.post("/api/generate-image", async (req, res) => {
     try {
       const { prompt } = req.body;

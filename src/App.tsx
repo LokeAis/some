@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { LayoutDashboard, CalendarDays, PenTool, Sparkles, ChevronRight, LogIn, LogOut, User, Trash2, Share2, CircleCheck, FolderOpen, Menu, X, Target, Building2, TrendingUp, FileText, Activity, Loader2, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, PenTool, Sparkles, ChevronRight, LogIn, LogOut, User, Trash2, Share2, CircleCheck, FolderOpen, Menu, X, Target, Building2, TrendingUp, FileText, Activity, Loader2, AlertCircle, Recycle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrandSelector } from './components/BrandSelector';
 import { ConfirmModal } from './components/ConfirmModal';
@@ -15,6 +15,7 @@ const BrandVoiceForm = lazy(() => import('./features/brandVoice/components/Brand
 const ArticleWizard = lazy(() => import('./features/articles/components/ArticleWizard').then(m => ({ default: m.ArticleWizard })));
 const QualityPanel = lazy(() => import('./features/quality/components/QualityPanel').then(m => ({ default: m.QualityPanel })));
 const TrendAnalyzer = lazy(() => import('./components/TrendAnalyzer').then(m => ({ default: m.TrendAnalyzer })));
+const Repurpose = lazy(() => import('./components/Repurpose').then(m => ({ default: m.Repurpose })));
 import { SiteAnalysisData, MonthPlanItem, MonthPlanData, SinglePostData } from './types';
 import { useAuth } from './contexts/AuthContext';
 import { BrandData, AnalysisData, PlanData, PostData, updateBrand } from './lib/db';
@@ -65,7 +66,7 @@ export default function App() {
   }, [apiKey]);
 
   // Initialize state from localStorage if available
-  const [activeTab, setActiveTab] = useState<'analysis' | 'competitor' | 'plan' | 'post' | 'article' | 'projects' | 'voice' | 'trends' | 'quality'>(() => {
+  const [activeTab, setActiveTab] = useState<'analysis' | 'competitor' | 'plan' | 'post' | 'article' | 'projects' | 'voice' | 'trends' | 'repurpose' | 'quality'>(() => {
     const saved = localStorage.getItem('some_activeTab');
     return (saved as any) || 'analysis';
   });
@@ -462,6 +463,17 @@ export default function App() {
               <TrendingUp className={`w-5 h-5 ${activeTab === 'trends' ? 'text-indigo-100' : 'text-neutral-400'}`} />
               <span>Kva skjer i bransjen?</span>
             </button>
+            <button
+              onClick={() => { setActiveTab('repurpose'); setIsMobileMenuOpen(false); }}
+              className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                activeTab === 'repurpose'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+              }`}
+            >
+              <Recycle className={`w-5 h-5 ${activeTab === 'repurpose' ? 'text-indigo-100' : 'text-neutral-400'}`} />
+              <span>Gjenbruk innhald</span>
+            </button>
           </div>
 
           <div className="pt-4 mt-4 border-t border-neutral-100">
@@ -638,6 +650,7 @@ export default function App() {
                 {activeTab === 'post' && 'Skriv eit innlegg'}
                 {activeTab === 'article' && 'Skriv ein artikkel'}
                 {activeTab === 'trends' && 'Kva skjer i bransjen?'}
+                {activeTab === 'repurpose' && 'Gjenbruk innhald'}
                 {activeTab === 'voice' && 'Brand Voice DNA'}
                 {activeTab === 'quality' && 'Kvalitet & Overvåking'}
               </h1>
@@ -648,6 +661,7 @@ export default function App() {
                 {activeTab === 'post' && 'Skriv engasjerande innlegg som er klare til å publiserast.'}
                 {activeTab === 'article' && 'Lag strukturerte artiklar med disposisjon først.'}
                 {activeTab === 'trends' && 'Søk etter dagsaktuelle trendar og lag innlegg basert på dei.'}
+                {activeTab === 'repurpose' && 'Gjer om ein artikkel eller eit innlegg til ferdige utkast for ein annan kanal.'}
                 {activeTab === 'voice' && 'Analyser skrivestilen din for å la AI-en skrive nøyaktig som deg.'}
                 {activeTab === 'quality' && 'Mål AI-prestasjon, spor feil og evaluer utkast.'}
               </p>
@@ -960,6 +974,22 @@ export default function App() {
                     setSelectedPost(newPost);
                     setActiveTab('post');
                   }}
+                />
+              </motion.div>
+            )}
+            {activeTab === 'repurpose' && selectedBrand && (
+              <motion.div
+                key="repurpose"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="max-w-4xl mx-auto"
+              >
+                <Repurpose
+                  apiKey={apiKey}
+                  selectedBrand={selectedBrand}
+                  brandVoice={voiceProfile}
                 />
               </motion.div>
             )}

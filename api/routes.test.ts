@@ -123,6 +123,31 @@ describe('validate-key', () => {
   });
 });
 
+describe('repurpose (gjenbruk av innhald)', () => {
+  it('utan nøkkel gir 401', async () => {
+    const res = await request(app).post('/api/repurpose').send({ text: 'x', channel: 'LinkedIn' });
+    expect(res.status).toBe(401);
+  });
+
+  it('med nøkkel men utan kanal gir 400', async () => {
+    const res = await request(app)
+      .post('/api/repurpose')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({ text: 'litt innhald' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/kanal/i);
+  });
+
+  it('med nøkkel og kanal men utan innhald gir 400', async () => {
+    const res = await request(app)
+      .post('/api/repurpose')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({ channel: 'Facebook' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/lenke|tekst/i);
+  });
+});
+
 describe('Ukjend rute', () => {
   it('gir 404', async () => {
     const res = await request(app).get('/api/finst-ikkje');
