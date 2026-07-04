@@ -1159,6 +1159,19 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
                 </button>
               </div>
 
+              {/* Anbefalt format (frå kanalreglane) */}
+              {post.content_type !== 'article' && post.format_suggestion && (
+                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-start space-x-3">
+                  <div className="bg-white p-1.5 rounded-lg shrink-0">
+                    <Columns className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-indigo-900">Anbefalt format</h4>
+                    <p className="text-sm text-indigo-800 mt-0.5">{post.format_suggestion}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Extra Ideas Card - Only for posts */}
               {post.content_type !== 'article' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -162,6 +162,53 @@ export function registerApiRoutes(app: express.Express) {
   });
 
 
+// Plattformspesifikke skrivereglar (basert på SoMe-strategen-masterprompten).
+// Utan desse får modellen berre kanalnamnet som etikett – og kan t.d. legge
+// døde lenker i ein Instagram-caption.
+const getChannelRules = (channel: string) => {
+  switch ((channel || '').toLowerCase()) {
+    case 'facebook':
+      return `KANALREGLAR FOR FACEBOOK:
+- Styrke: lenketrafikk, lokalsamfunn, diskusjon, deling, breiare/eldre demografi.
+- Lengde: kort og slagkraftig, 30–100 ord. Hooken må stå i første setning – resten blir kutta bak "Sjå meir".
+- Lenker skal limast direkte i innlegget. CTA peikar på lenka ("Les meir her:", "Sjekk her:").
+- Spørsmål og lokale referansar driv kommentarar – kommentarar driv rekkevidde.
+- Emojis: sparsamt, 1–3, aldri som pynt utan funksjon.
+- Hashtags: 0–2, berre viss målgruppa faktisk brukar dei. Hashtags er nesten verdilause på Facebook.`;
+    case 'instagram':
+      return `KANALREGLAR FOR INSTAGRAM:
+- Styrke: visuell historieforteljing, merkevarebygging, yngre demografi, Reels-rekkevidde.
+- Lenker i caption er DAUDE (ikkje klikkbare). CTA må vere "lenke i bio", "kommenter [ord] så sender vi", eller handling i appen (lagre, del, følg). ALDRI lim ein URL i captionen.
+- Første linje er alt – ho blir vist før "meir"-klikket og må fungere åleine som hook.
+- Kort hook + verdi. Mikrohistorier fungerer; veggar av tekst gjer det ikkje.
+- Hashtags: 3–8 relevante og spesifikke (nisje + geografi slår generiske), plassert til slutt.
+- "Lagre dette"-verdi (tips, guidar, oversikter) slår rein promotering.`;
+    case 'linkedin':
+      return `KANALREGLAR FOR LINKEDIN:
+- Styrke: fagleg autoritet, B2B, rekruttering, bransjeinnsikt.
+- Første 2–3 linjer må bere innlegget – resten blir kutta bak "sjå meir". Start med innsikt eller påstand, ikkje pliktfrasar.
+- Personleg fagleg vinkel slår bedriftsspråk. Del erfaring, læring eller eit standpunkt.
+- Lenker i innlegget dempar rekkevidda noko – vurder lenke i første kommentar, eller aksepter trade-offen medvite.
+- Emojis: svært sparsamt eller ingen. Hashtags: 0–3 faglege.
+- Avslutt gjerne med eit ope spørsmål som inviterer fagleg diskusjon.`;
+    case 'tiktok':
+      return `KANALREGLAR FOR TIKTOK:
+- Dette er eit manus-/konseptformat: lever ein kort video-idé (hook dei første 1–2 sekunda, poeng, payoff) pluss caption.
+- Caption: kort, munnleg, gjerne med eit spørsmål. Lenker i caption er ikkje klikkbare.
+- Hashtags: 3–5, nisje slår generisk.
+- Autentisk og rått slår polert reklame.`;
+    case 'x/twitter':
+    case 'x':
+    case 'twitter':
+      return `KANALREGLAR FOR X/TWITTER:
+- Maks ~280 teikn på hovudteksten. Kvar setning må kjempe for plassen.
+- Skarp påstand, tal eller spørsmål som hook. Ingen fyllord.
+- Hashtags: 0–2. Lenker kan limast direkte.`;
+    default:
+      return `KANALREGLAR: Skriv for mobil – korte avsnitt, luft mellom linjene, det viktigaste først. Éin tydeleg CTA.`;
+  }
+};
+
 const formatBrandVoice = (bv: any) => {
   if (!bv) return '';
   if (typeof bv === 'string') return bv;
@@ -762,6 +809,16 @@ ${modification ? `<task_modification>\nBrukaren har bedt om følgjande endring p
         };
       } else {
         systemInstruction = `Du skriv naturleg norsk med variert rytme og aktivt språk. Du skal aldri overdrive, aldri skrive AI-klisjear, og du må unngå overdriven bruk av tankestrek (–) for å skyte inn informasjon. Bruk heller komma eller lag ei ny setning. Du må seie frå når inputen er for svak til å lage truverdig innhald.
+
+INTEGRITETSREGLAR (absolutte):
+- Dikt ALDRI opp fakta, prisar, resultat eller kundeutsegner. Arbeid berre med det som finst i inputen.
+- Ingen clickbait: teksten skal aldri love meir enn innhaldet leverer. Nysgjerrigheit er lov – falske forventningar er det ikkje.
+- Ingen overdrivne påstandar ("best i Noreg", "garantert") utan dokumentasjon i materialet.
+- Éin tydeleg CTA per innlegg – fleire CTA-ar drep konvertering.
+- Vel EITT hovudgrep per innlegg (problem→løysing, mikrohistorie, spørsmål, sesong/aktualitet, eller rein nytteverdi).
+- Følg Metas retningslinjer. Ver særleg varsam med konkurransar og påstandar om helse/økonomi.
+
+${getChannelRules(channel)}
 ${formattedBrandVoice ? `\nBruk følgjande Brand Voice DNA for å treffe nøyaktig på tone of voice, rytme og vokabular:\n${formattedBrandVoice}\n` : ''}`;
 
         prompt = `<input>
@@ -788,9 +845,10 @@ ${modification ? `<task_modification>\nBrukaren har bedt om følgjande endring p
             short_version: { type: Type.STRING },
             hashtag_suggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
             image_prompt: { type: Type.STRING, description: `Ein detaljert prompt på engelsk for å generere eit bilde.` },
-            alternative_variant: { type: Type.STRING }
+            alternative_variant: { type: Type.STRING },
+            format_suggestion: { type: Type.STRING, description: "Kva format innhaldet fortener på denne kanalen (t.d. 'Statisk post', 'Karusell – 5 slides med stega', 'Reels – konsept: ...') og éi setning om kvifor." }
           },
-          required: ["hook", "main_caption", "short_version", "hashtag_suggestions", "image_prompt", "alternative_variant"]
+          required: ["hook", "main_caption", "short_version", "hashtag_suggestions", "image_prompt", "alternative_variant", "format_suggestion"]
         };
       }
 

@@ -61,6 +61,7 @@ export interface SinglePostData {
   short_version?: string;
   hashtag_suggestions?: string[];
   alternative_variant?: string;
+  format_suggestion?: string;
   // Article fields
   article_title?: string;
   url_slug?: string;
