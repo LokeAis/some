@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Recycle, Loader2, AlertCircle, Link as LinkIcon, FileText, Copy, CircleCheck, Lightbulb } from 'lucide-react';
+import { Recycle, Loader2, AlertCircle, Link as LinkIcon, FileText, Copy, CircleCheck, Lightbulb, PenTool } from 'lucide-react';
 import { motion } from 'motion/react';
 import { BrandData } from '../lib/db';
 
@@ -18,6 +18,8 @@ interface Props {
   apiKey: string;
   selectedBrand: BrandData | null;
   brandVoice?: any;
+  /** Send eit utkast vidare til innleggseditoren (arvar fidelity-score, auto-fiks og lagring). */
+  onEditFurther?: (draft: Draft, channel: string) => void;
 }
 
 const CHANNELS = ['LinkedIn', 'Facebook', 'X/Twitter', 'Instagram'];
@@ -26,7 +28,7 @@ const CHANNELS = ['LinkedIn', 'Facebook', 'X/Twitter', 'Instagram'];
  * Gjenbruk: lim inn ei lenke eller tekst → lynanalyse + 2–3 publiseringsklare
  * utkast for vald kanal. Byggjer på /api/repurpose (kanalreglar + brand voice).
  */
-export function Repurpose({ apiKey, selectedBrand, brandVoice }: Props) {
+export function Repurpose({ apiKey, selectedBrand, brandVoice, onEditFurther }: Props) {
   const [inputMode, setInputMode] = useState<'url' | 'text'>('url');
   const [url, setUrl] = useState('');
   const [text, setText] = useState('');
@@ -196,14 +198,24 @@ export function Repurpose({ apiKey, selectedBrand, brandVoice }: Props) {
                     {draft.hashtags.map(t => t.startsWith('#') ? t : `#${t}`).join(' ')}
                   </p>
                 )}
-                <button
-                  onClick={() => copyDraft(draft, idx)}
-                  className="mt-4 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  {copiedIdx === idx
-                    ? <><CircleCheck className="w-3.5 h-3.5 text-emerald-600" /> Kopiert!</>
-                    : <><Copy className="w-3.5 h-3.5" /> Kopier utkast</>}
-                </button>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => copyDraft(draft, idx)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    {copiedIdx === idx
+                      ? <><CircleCheck className="w-3.5 h-3.5 text-emerald-600" /> Kopiert!</>
+                      : <><Copy className="w-3.5 h-3.5" /> Kopier</>}
+                  </button>
+                  {onEditFurther && (
+                    <button
+                      onClick={() => onEditFurther(draft, channel)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                    >
+                      <PenTool className="w-3.5 h-3.5" /> Rediger vidare
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

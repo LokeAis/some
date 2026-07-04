@@ -990,6 +990,18 @@ export default function App() {
                   apiKey={apiKey}
                   selectedBrand={selectedBrand}
                   brandVoice={voiceProfile}
+                  onEditFurther={(draft, channel) => {
+                    const newPost: SinglePostData = {
+                      hook: draft.angle,
+                      main_caption: draft.text,
+                      hashtag_suggestions: draft.hashtags || [],
+                      image_prompt: '',
+                      channel,
+                      content_type: 'post'
+                    };
+                    setSelectedPost(newPost);
+                    setActiveTab('post');
+                  }}
                 />
               </motion.div>
             )}
