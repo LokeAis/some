@@ -188,6 +188,7 @@ service cloud.firestore {
              (!('image_prompt' in data) || (data.image_prompt is string && data.image_prompt.size() < 5000)) &&
              (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() < 2000)) &&
              (!('alternative_variant' in data) || (data.alternative_variant is string && data.alternative_variant.size() < 50000)) &&
+             (!('format_suggestion' in data) || (data.format_suggestion is string && data.format_suggestion.size() < 2000)) &&
              (!('article_title' in data) || (data.article_title is string && data.article_title.size() < 1000)) &&
              (!('url_slug' in data) || (data.url_slug is string && data.url_slug.size() < 1000)) &&
              (!('meta_title' in data) || (data.meta_title is string && data.meta_title.size() < 1000)) &&

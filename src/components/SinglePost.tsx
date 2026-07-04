@@ -329,6 +329,7 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
         image_prompt: post.image_prompt,
         imageUrl: post.imageUrl,
         alternative_variant: post.alternative_variant,
+        format_suggestion: post.format_suggestion,
         article_title: article_title,
         url_slug: url_slug,
         meta_title: meta_title,

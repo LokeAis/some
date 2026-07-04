@@ -62,6 +62,7 @@ export interface PostData {
   image_prompt?: string;
   imageUrl?: string;
   alternative_variant?: string;
+  format_suggestion?: string;
   status?: 'draft' | 'ready' | 'published';
   createdAt?: any;
 }
