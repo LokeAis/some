@@ -148,6 +148,21 @@ describe('repurpose (gjenbruk av innhald)', () => {
   });
 });
 
+describe('generate-article-stream', () => {
+  it('utan nøkkel gir 401', async () => {
+    const res = await request(app).post('/api/generate-article-stream').send({ topic: 't', outline: 'o' });
+    expect(res.status).toBe(401);
+  });
+
+  it('med nøkkel men utan tema/disposisjon gir 400', async () => {
+    const res = await request(app)
+      .post('/api/generate-article-stream')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({});
+    expect(res.status).toBe(400);
+  });
+});
+
 describe('Ukjend rute', () => {
   it('gir 404', async () => {
     const res = await request(app).get('/api/finst-ikkje');

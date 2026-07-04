@@ -1211,22 +1211,7 @@ STEG 2: Lag disposisjonen basert på den valde kategorien. Ikkje bruk ein standa
     }
   });
 
-  app.post("/api/generate-article", async (req, res) => {
-    try {
-      const { topic, outline, brandVoice, useSearch, modelTier } = req.body;
-      const formattedBrandVoice = formatBrandVoice(brandVoice);
-      const apiKey = getApiKey(req);
-      
-      if (!apiKey) {
-        return res.status(401).json({ error: "API-nøkkel manglar." });
-      }
-      if (!topic || !outline) {
-        return res.status(400).json({ error: "Manglar tema eller disposisjon." });
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      
-      const prompt = `<role>
+  const buildArticlePrompt = (topic: string, outline: string, formattedBrandVoice: string) => `<role>
 Du er ein senior SEO-skribent og fagredaktør. Du skriv på naturleg, flytande nynorsk. Tekstane dine er kjende for å vere engasjerande, truverdige og lette å lese.
 </role>
 
@@ -1262,6 +1247,22 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
 5. Viss du har tilgang til søk/kjelder, flett fakta naturleg inn i teksten. Ikkje finn opp statistikk.
 </formatting_rules>`;
 
+  app.post("/api/generate-article", async (req, res) => {
+    try {
+      const { topic, outline, brandVoice, useSearch, modelTier } = req.body;
+      const formattedBrandVoice = formatBrandVoice(brandVoice);
+      const apiKey = getApiKey(req);
+
+      if (!apiKey) {
+        return res.status(401).json({ error: "API-nøkkel manglar." });
+      }
+      if (!topic || !outline) {
+        return res.status(400).json({ error: "Manglar tema eller disposisjon." });
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = buildArticlePrompt(topic, outline, formattedBrandVoice);
+
       const config: any = { temperature: 0.7 };
       if (useSearch) {
         config.tools = [{ googleSearch: {} }];
@@ -1276,7 +1277,7 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
       });
 
       let articleText = response.text;
-      
+
       if (useSearch) {
         const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
         const sources = chunks.map((chunk: any) => ({
@@ -1297,6 +1298,73 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
     } catch (error) {
       const errResponse = handleGeminiError(error, "Feil ved laging av artikkel");
       res.status(errResponse.status).json({ error: errResponse.error });
+    }
+  });
+
+  // Same artikkel-generering som over, men strøymd rått (text/plain) etter kvart
+  // som Gemini produserer teksten – gir "skriv-fram"-kjensle i staden for spinner.
+  // Merk: dette er vanleg tekst, ikkje SSE-rammer, sidan svaret alt er rein Markdown.
+  const STREAM_ERROR_MARKER = " STREAM_ERROR ";
+
+  app.post("/api/generate-article-stream", async (req, res) => {
+    const { topic, outline, brandVoice, useSearch, modelTier } = req.body;
+    const formattedBrandVoice = formatBrandVoice(brandVoice);
+    const apiKey = getApiKey(req);
+
+    if (!apiKey) {
+      return res.status(401).json({ error: "API-nøkkel manglar." });
+    }
+    if (!topic || !outline) {
+      return res.status(400).json({ error: "Manglar tema eller disposisjon." });
+    }
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = buildArticlePrompt(topic, outline, formattedBrandVoice);
+
+      const config: any = { temperature: 0.7 };
+      if (useSearch) {
+        config.tools = [{ googleSearch: {} }];
+      }
+      const modelName = modelTier === 'premium' ? "gemini-3.1-pro-preview" : "gemini-3.5-flash";
+
+      const stream = await ai.models.generateContentStream({
+        model: modelName,
+        contents: prompt,
+        config
+      });
+
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('X-Accel-Buffering', 'no');
+
+      const sourcesByUrl = new Map<string, { url: string; title: string }>();
+      for await (const chunk of stream) {
+        if (chunk.text) res.write(chunk.text);
+        if (useSearch) {
+          const gChunks = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+          gChunks.forEach((c: any) => {
+            if (c.web?.uri) sourcesByUrl.set(c.web.uri, { url: c.web.uri, title: c.web.title });
+          });
+        }
+      }
+
+      if (useSearch && sourcesByUrl.size > 0) {
+        let sourcesBlock = `\n\n### Kjelder brukt i denne artikkelen\n`;
+        sourcesByUrl.forEach(s => { sourcesBlock += `- [${s.title}](${s.url})\n`; });
+        res.write(sourcesBlock);
+      }
+      res.end();
+    } catch (error) {
+      const errResponse = handleGeminiError(error, "Feil ved laging av artikkel");
+      if (!res.headersSent) {
+        res.status(errResponse.status).json({ error: errResponse.error });
+      } else {
+        // Strøymen er alt i gang – kan ikkje lenger sende JSON/statuskode.
+        // Merk slutten av teksten slik at klienten kan skilje ut feilen.
+        res.write(`${STREAM_ERROR_MARKER}${errResponse.error}`);
+        res.end();
+      }
     }
   });
 

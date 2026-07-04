@@ -9,6 +9,9 @@ import { ErrorMessage } from '../../../components/ErrorMessage';
 import { AITextEditor } from '../../../components/AITextEditor';
 import { FidelityScore } from '../../../components/FidelityScore';
 
+// Må vere identisk med STREAM_ERROR_MARKER i api/routes.ts.
+const STREAM_ERROR_MARKER = " STREAM_ERROR ";
+
 interface ArticleWizardProps {
   apiKey: string;
   selectedBrand: BrandData;
@@ -102,9 +105,10 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
     setIsGeneratingArticle(true);
     setError(null);
     setSuccessMessage(null);
+    setArticle('');
 
     try {
-      const response = await fetch('/api/generate-article', {
+      const response = await fetch('/api/generate-article-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,13 +123,31 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
         })
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Feil ved generering av artikkel');
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'Feil ved generering av artikkel');
+      }
+      if (!response.body) {
+        throw new Error('Fekk ikkje strøyma svar frå serveren.');
       }
 
-      setArticle(data.article);
+      // Les strømmen etter kvart som Gemini skriv – artikkelen "skriv seg fram"
+      // i staden for å dukke opp bak ein spinner.
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let full = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        full += decoder.decode(value, { stream: true });
+        const errorIdx = full.indexOf(STREAM_ERROR_MARKER);
+        setArticle(errorIdx === -1 ? full : full.slice(0, errorIdx));
+      }
+
+      const errorIdx = full.indexOf(STREAM_ERROR_MARKER);
+      if (errorIdx !== -1) {
+        setError(full.slice(errorIdx + STREAM_ERROR_MARKER.length) || 'Feil under generering av artikkel.');
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
