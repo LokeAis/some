@@ -1011,9 +1011,11 @@ ${brandProfile ? `\n<avsendar>\n${JSON.stringify(slimBrandProfile(brandProfile),
       if (!channel) {
         return res.status(400).json({ error: "Vel ein målkanal." });
       }
-      // Vaktvern mot altfor store kall (base64 ~1.37x råstorleik). ~7 MB base64 ≈ 5 MB bilde.
-      if (imageBase64.length > 7_000_000) {
-        return res.status(413).json({ error: "Bildet er for stort. Bruk eit mindre bilde (maks ~5 MB)." });
+      // Vaktvern mot for store kall. Sett trygt under express.json-grensa (5 MB)
+      // slik at brukaren får DENNE meldinga, ikkje express sin råe feil.
+      // (Klienten nedskalerer uansett til typisk <500 kB.)
+      if (imageBase64.length > 4_500_000) {
+        return res.status(413).json({ error: "Bildet er for stort. Bruk eit mindre bilde." });
       }
 
       const formattedBrandVoice = formatBrandVoice(brandVoice);
