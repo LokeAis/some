@@ -599,6 +599,14 @@ export default function App() {
                       <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /> {keyError}
                     </p>
                   )}
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-indigo-600 hover:text-indigo-700 font-medium mt-2 inline-flex items-center gap-1"
+                  >
+                    Skaff ein gratis nøkkel her →
+                  </a>
                   <p className="text-[10px] text-neutral-500 mt-2 leading-tight">
                     Lagrast lokalt i nettlesaren din. Brukast til å generere innhald.
                   </p>
@@ -1052,10 +1060,13 @@ export default function App() {
 
         {/* Footer */}
         <footer className="border-t border-neutral-200 bg-white py-8 px-6 md:px-10 mt-auto pb-24 md:pb-8">
-          <div className="max-w-5xl mx-auto flex items-center justify-center">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
             <div className="text-sm text-neutral-500">
               © {new Date().getFullYear()} SoMe-assistenten. Alle rettar reservert.
             </div>
+            <a href="/personvern.html" className="text-sm text-neutral-500 hover:text-indigo-600 transition-colors">
+              Personvern
+            </a>
           </div>
         </footer>
 

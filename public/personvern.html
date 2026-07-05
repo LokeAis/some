@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="nn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personvernerklæring | SoMe-assistenten</title>
+    <meta name="robots" content="index, follow" />
+    <style>
+      :root { --indigo: #4f46e5; }
+      * { box-sizing: border-box; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1f2937; line-height: 1.65; margin: 0; background: #f9fafb;
+      }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+      a.back { color: var(--indigo); text-decoration: none; font-weight: 600; font-size: 14px; }
+      a.back:hover { text-decoration: underline; }
+      h1 { font-size: 32px; margin: 24px 0 4px; }
+      h2 { font-size: 20px; margin: 32px 0 8px; }
+      .muted { color: #6b7280; font-size: 14px; }
+      .note {
+        background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 12px;
+        padding: 14px 16px; font-size: 14px; margin: 20px 0;
+      }
+      ul { padding-left: 22px; }
+      li { margin: 4px 0; }
+      code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+      footer { margin-top: 48px; color: #9ca3af; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <a class="back" href="/">← Tilbake til appen</a>
+      <h1>Personvernerklæring</h1>
+      <p class="muted">Sist oppdatert: 5. juli 2026</p>
+
+      <div class="note">
+        <strong>Til eigaren:</strong> Fyll inn kontakt-e-post og eventuelt organisasjonsnamn/-nummer der det står
+        <code>[fyll inn]</code> nedanfor, og få gjerne teksten kvalitetssikra før lansering. Dette er eit
+        utgangspunkt, ikkje juridisk rådgiving.
+      </div>
+
+      <p>
+        Denne erklæringa forklarar korleis SoMe-assistenten ("vi", "tenesta") handterer personopplysningar når du
+        brukar tenesta. Vi behandlar berre det som er nødvendig for at appen skal fungere.
+      </p>
+
+      <h2>Behandlingsansvarleg</h2>
+      <p>
+        SoMe-assistenten, ved <code>[fyll inn namn/organisasjon]</code>. Spørsmål om personvern kan rettast til
+        <code>[fyll inn kontakt-e-post]</code>.
+      </p>
+
+      <h2>Kva opplysningar vi behandlar</h2>
+      <ul>
+        <li><strong>Kontoinformasjon:</strong> namn og e-postadresse frå Google-kontoen du loggar inn med.</li>
+        <li><strong>Innhaldet ditt:</strong> merkevarer, analysar, innhaldsplanar, innlegg og artiklar du lagar og lagrar i appen.</li>
+        <li><strong>Gemini API-nøkkel:</strong> nøkkelen din vert lagra <strong>lokalt i nettlesaren din</strong> (localStorage) og send med kvar førespurnad til AI-tenesta. Han vert ikkje lagra på serverane våre.</li>
+      </ul>
+
+      <h2>Kven vi deler med (databehandlarar)</h2>
+      <ul>
+        <li><strong>Google Firebase</strong> (autentisering og database): lagrar kontoen og innhaldet ditt.</li>
+        <li><strong>Google Gemini API:</strong> tekst du ber om å få generert eller analysert, vert send hit for behandling.</li>
+        <li><strong>Vercel:</strong> driftar (hostar) applikasjonen.</li>
+      </ul>
+      <p class="muted">Desse er tredjepartar med eigne personvernvilkår. Vi sel aldri opplysningane dine.</p>
+
+      <h2>Kvifor og på kva grunnlag</h2>
+      <p>
+        Vi behandlar opplysningane for å levere tenesta du ber om (oppretting og lagring av innhald, AI-generering).
+        Grunnlaget er å oppfylle avtalen med deg som brukar, og eventuelt ditt samtykke.
+      </p>
+
+      <h2>Lagringstid</h2>
+      <p>
+        Innhaldet ditt vert lagra så lenge du har ein aktiv konto. Slettar du innhald eller kontoen, vert det fjerna
+        frå databasen. Gemini-nøkkelen forsvinn når du tømmer nettlesaren eller loggar ut.
+      </p>
+
+      <h2>Rettane dine</h2>
+      <p>
+        Du har rett til innsyn, retting og sletting av opplysningane dine, og til å klage til Datatilsynet. Ta kontakt
+        på <code>[fyll inn kontakt-e-post]</code> for å bruke rettane dine.
+      </p>
+
+      <h2>Endringar</h2>
+      <p>Vi kan oppdatere denne erklæringa. Vesentlege endringar vert varsla i appen.</p>
+
+      <footer>© 2026 SoMe-assistenten</footer>
+    </div>
+  </body>
+</html>
