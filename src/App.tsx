@@ -919,6 +919,18 @@ export default function App() {
                   voiceProfile={voiceProfile}
                   user={user}
                   initialArticle={selectedArticle}
+                  onEditFurther={(draft, channel) => {
+                    const newPost: SinglePostData = {
+                      hook: draft.angle,
+                      main_caption: draft.text,
+                      hashtag_suggestions: draft.hashtags || [],
+                      image_prompt: '',
+                      channel,
+                      content_type: 'post'
+                    };
+                    setSelectedPost(newPost);
+                    setActiveTab('post');
+                  }}
                 />
               </motion.div>
             )}

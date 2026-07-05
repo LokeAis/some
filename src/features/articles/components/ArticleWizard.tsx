@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { FileText, Wand2, Save, Loader2, List, CheckCircle2, Plus, Image as ImageIcon, Copy, Check } from 'lucide-react';
+import { FileText, Wand2, Save, Loader2, List, CheckCircle2, Plus, Image as ImageIcon, Copy, Check, Share2, Linkedin, Facebook, Instagram, AlertCircle } from 'lucide-react';
 import { BrandData } from '../../../lib/db';
 import { BrandVoiceProfile } from '../../brandVoice/types';
 import { saveArticle } from '../services/articleDb';
@@ -8,6 +8,8 @@ import { ArticleData } from '../types';
 import { ErrorMessage } from '../../../components/ErrorMessage';
 import { AITextEditor } from '../../../components/AITextEditor';
 import { FidelityScore } from '../../../components/FidelityScore';
+import { RepurposeResults } from '../../../components/RepurposeResults';
+import { useRepurpose, Draft } from '../../../lib/useRepurpose';
 
 // Må vere identisk med STREAM_ERROR_MARKER i api/routes.ts.
 const STREAM_ERROR_MARKER = " STREAM_ERROR ";
@@ -18,9 +20,18 @@ interface ArticleWizardProps {
   voiceProfile?: BrandVoiceProfile;
   user: any;
   initialArticle?: ArticleData | null;
+  /** Send eit kanalutkast vidare til innleggseditoren. */
+  onEditFurther?: (draft: Draft, channel: string) => void;
 }
 
-export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initialArticle }: ArticleWizardProps) {
+const SHARE_CHANNELS: { name: string; icon: typeof Linkedin }[] = [
+  { name: 'LinkedIn', icon: Linkedin },
+  { name: 'Facebook', icon: Facebook },
+  { name: 'Instagram', icon: Instagram },
+];
+
+export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initialArticle, onEditFurther }: ArticleWizardProps) {
+  const repurpose = useRepurpose(apiKey, voiceProfile, selectedBrand);
   const [topic, setTopic] = useState(initialArticle?.topic || '');
   const [useSearch, setUseSearch] = useState(false);
   const [outline, setOutline] = useState(initialArticle?.outline || '');
@@ -410,6 +421,43 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
 
               {/* Brand voice fidelity (Grep 2) + auto-fiks mot stemma */}
               <FidelityScore content={article} brandVoice={voiceProfile} onContentChange={setArticle} />
+
+              {/* Multi-kanal-tilpasning: gjer den ferdige artikkelen om til sosiale utkast med eitt klikk */}
+              {article.trim() && (
+                <div className="mt-2 p-4 rounded-xl border border-gray-200 bg-gray-50/60">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Share2 className="w-4 h-4 text-emerald-600" />
+                    <h4 className="text-sm font-semibold text-gray-900">Del til sosiale kanalar</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">Gjer artikkelen om til ferdige utkast, skreddarsydde for kanalen.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {SHARE_CHANNELS.map(({ name, icon: Icon }) => (
+                      <button
+                        key={name}
+                        onClick={() => repurpose.run({ text: article, channel: name })}
+                        disabled={repurpose.loading}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors disabled:opacity-50"
+                      >
+                        {repurpose.loading && repurpose.activeChannel === name
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : <Icon className="w-4 h-4" />}
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+
+                  {repurpose.error && (
+                    <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg p-3 mt-3 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /> {repurpose.error}
+                    </p>
+                  )}
+                  {repurpose.result && (
+                    <div className="mt-4">
+                      <RepurposeResults result={repurpose.result} channel={repurpose.activeChannel} onEditFurther={onEditFurther} />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {generatedImagePrompt && (
                 <motion.div 

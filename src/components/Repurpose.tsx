@@ -1,18 +1,8 @@
 import React, { useState } from 'react';
-import { Recycle, Loader2, AlertCircle, Link as LinkIcon, FileText, Copy, CircleCheck, Lightbulb, PenTool } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Recycle, Loader2, AlertCircle, Link as LinkIcon, FileText } from 'lucide-react';
 import { BrandData } from '../lib/db';
-
-interface Draft {
-  angle: string;
-  text: string;
-  hashtags: string[];
-}
-
-interface RepurposeResult {
-  analysis: { main_message: string; tone: string; key_points: string[] };
-  drafts: Draft[];
-}
+import { useRepurpose, Draft } from '../lib/useRepurpose';
+import { RepurposeResults } from './RepurposeResults';
 
 interface Props {
   apiKey: string;
@@ -33,59 +23,25 @@ export function Repurpose({ apiKey, selectedBrand, brandVoice, onEditFurther }: 
   const [url, setUrl] = useState('');
   const [text, setText] = useState('');
   const [channel, setChannel] = useState('LinkedIn');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<RepurposeResult | null>(null);
-  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [inputError, setInputError] = useState<string | null>(null);
 
-  const handleGenerate = async (e: React.FormEvent) => {
+  const { result, loading, error, activeChannel, run } = useRepurpose(apiKey, brandVoice, selectedBrand);
+
+  const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    if (!apiKey) {
-      setError('API-nøkkel manglar. Lim inn nøkkelen din i menyen til venstre.');
-      return;
-    }
+    setInputError(null);
     if (inputMode === 'url' && !url.trim()) {
-      setError('Lim inn ei lenke først.');
+      setInputError('Lim inn ei lenke først.');
       return;
     }
     if (inputMode === 'text' && !text.trim()) {
-      setError('Lim inn teksten du vil gjenbruke.');
+      setInputError('Lim inn teksten du vil gjenbruke.');
       return;
     }
-
-    setLoading(true);
-    setResult(null);
-    try {
-      const body = {
-        ...(inputMode === 'url' ? { url: url.trim() } : { text }),
-        channel,
-        brandVoice,
-        brandProfile: selectedBrand
-      };
-      const response = await fetch('/api/repurpose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-        body: JSON.stringify(body)
-      });
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        throw new Error(errData?.error || `Feilkode: ${response.status}`);
-      }
-      setResult(await response.json());
-    } catch (err: any) {
-      setError(err.message || 'Ein uventa feil oppstod.');
-    } finally {
-      setLoading(false);
-    }
+    run({ ...(inputMode === 'url' ? { url: url.trim() } : { text }), channel });
   };
 
-  const copyDraft = (draft: Draft, idx: number) => {
-    const tags = (draft.hashtags || []).map(t => t.startsWith('#') ? t : `#${t}`).join(' ');
-    navigator.clipboard.writeText(tags ? `${draft.text}\n\n${tags}` : draft.text);
-    setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
-  };
+  const shownError = inputError || error;
 
   return (
     <div className="space-y-6">
@@ -104,10 +60,10 @@ export function Repurpose({ apiKey, selectedBrand, brandVoice, onEditFurther }: 
         </div>
 
         <form onSubmit={handleGenerate} className="p-6 space-y-4">
-          {error && (
+          {shownError && (
             <div className="p-4 bg-red-50 text-red-700 rounded-lg flex items-start gap-3 text-sm">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <p>{error}</p>
+              <p>{shownError}</p>
             </div>
           )}
 
@@ -166,61 +122,7 @@ export function Repurpose({ apiKey, selectedBrand, brandVoice, onEditFurther }: 
         </form>
       </div>
 
-      {result && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          {/* Lynanalyse */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="bg-amber-50 p-1.5 rounded-lg"><Lightbulb className="w-4 h-4 text-amber-600" /></div>
-              <h3 className="font-semibold text-sm text-gray-900">Lynanalyse</h3>
-            </div>
-            <p className="text-sm text-gray-800"><span className="font-medium">Hovudbodskap:</span> {result.analysis.main_message}</p>
-            <p className="text-sm text-gray-600 mt-1"><span className="font-medium text-gray-800">Tonefall:</span> {result.analysis.tone}</p>
-            {result.analysis.key_points?.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {result.analysis.key_points.map((p, i) => (
-                  <li key={i} className="text-sm text-gray-600 flex gap-2"><span className="text-amber-500">•</span>{p}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Utkast */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {result.drafts.map((draft, idx) => (
-              <div key={idx} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col">
-                <span className="inline-flex self-start px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 mb-3">
-                  {draft.angle}
-                </span>
-                <p className="text-sm text-gray-800 whitespace-pre-wrap flex-grow">{draft.text}</p>
-                {draft.hashtags?.length > 0 && (
-                  <p className="text-xs text-emerald-600 mt-3">
-                    {draft.hashtags.map(t => t.startsWith('#') ? t : `#${t}`).join(' ')}
-                  </p>
-                )}
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={() => copyDraft(draft, idx)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    {copiedIdx === idx
-                      ? <><CircleCheck className="w-3.5 h-3.5 text-emerald-600" /> Kopiert!</>
-                      : <><Copy className="w-3.5 h-3.5" /> Kopier</>}
-                  </button>
-                  {onEditFurther && (
-                    <button
-                      onClick={() => onEditFurther(draft, channel)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
-                    >
-                      <PenTool className="w-3.5 h-3.5" /> Rediger vidare
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
+      {result && <RepurposeResults result={result} channel={activeChannel} onEditFurther={onEditFurther} />}
     </div>
   );
 }
