@@ -995,6 +995,100 @@ ${brandProfile ? `\n<avsendar>\n${JSON.stringify(slimBrandProfile(brandProfile),
     }
   });
 
+  // Bilde-til-SoMe: analyser eit opplasta bilde (+ valfri kommentar) multimodalt
+  // og lag kanaltilpassa utkast. Bildet vert IKKJE lagra – det er berre input i kallet.
+  app.post("/api/image-to-post", async (req, res) => {
+    try {
+      const { imageBase64, mimeType, comment, channel, brandVoice, brandProfile } = req.body;
+      const apiKey = getApiKey(req);
+
+      if (!apiKey) {
+        return res.status(401).json({ error: "API-nøkkel manglar. Lim inn nøkkelen din i menyen til venstre." });
+      }
+      if (!imageBase64) {
+        return res.status(400).json({ error: "Manglar bilde." });
+      }
+      if (!channel) {
+        return res.status(400).json({ error: "Vel ein målkanal." });
+      }
+      // Vaktvern mot altfor store kall (base64 ~1.37x råstorleik). ~7 MB base64 ≈ 5 MB bilde.
+      if (imageBase64.length > 7_000_000) {
+        return res.status(413).json({ error: "Bildet er for stort. Bruk eit mindre bilde (maks ~5 MB)." });
+      }
+
+      const formattedBrandVoice = formatBrandVoice(brandVoice);
+      const ai = new GoogleGenAI({ apiKey });
+
+      const systemInstruction = `Du er ekspert på visuell innhaldsmarknadsføring. Du ser på eit bilde og lagar publiseringsklart innhald for sosiale medium.
+
+INTEGRITETSREGLAR (absolutte):
+- Beskriv berre det du faktisk ser i bildet + det brukaren fortel. Dikt ALDRI opp fakta, prisar, produktnamn eller påstandar.
+- Ingen clickbait. Éin tydeleg CTA per utkast. Eitt hovudgrep per utkast.
+- Utkasta skal vere ULIKE vinklar – ikkje tre omformuleringar av same setning.
+
+${getChannelRules(channel)}
+${formattedBrandVoice ? `\nBruk følgjande Brand Voice DNA for tone, rytme og vokabular:\n${formattedBrandVoice}\n` : ''}`;
+
+      const promptText = `<oppgåve>
+1. Gjer ei kort visuell analyse av bildet: kva viser det (motiv), kva stemning/tone det formidlar, og 3–5 nøkkelelement.
+2. Skriv 2–3 publiseringsklare utkast for ${channel} basert på bildet, kvar med ulik vinkel. Følg kanalreglane. Inkluder passande emojis og relevante hashtags.
+</oppgåve>
+${comment ? `\n<brukaren sin kommentar/stikkord>\n${comment}\n</brukaren sin kommentar/stikkord>\n` : ''}
+${brandProfile ? `\n<avsendar>\n${JSON.stringify(slimBrandProfile(brandProfile), null, 2)}\n</avsendar>\n` : ''}`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: [{
+          parts: [
+            { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } },
+            { text: promptText }
+          ]
+        }],
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              analysis: {
+                type: Type.OBJECT,
+                properties: {
+                  main_message: { type: Type.STRING, description: "Kva bildet viser (motiv)." },
+                  tone: { type: Type.STRING, description: "Stemning/tone i bildet." },
+                  key_points: { type: Type.ARRAY, items: { type: Type.STRING } }
+                },
+                required: ["main_message", "tone", "key_points"]
+              },
+              drafts: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    angle: { type: Type.STRING },
+                    text: { type: Type.STRING },
+                    hashtags: { type: Type.ARRAY, items: { type: Type.STRING } }
+                  },
+                  required: ["angle", "text", "hashtags"]
+                }
+              }
+            },
+            required: ["analysis", "drafts"]
+          }
+        }
+      });
+
+      if (!response.text) {
+        throw new Error("Tom respons frå Gemini API");
+      }
+      const cleaned = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+      res.json(JSON.parse(cleaned));
+    } catch (error) {
+      const errResponse = handleGeminiError(error, "Feil ved analyse av bilde");
+      res.status(errResponse.status).json({ error: errResponse.error });
+    }
+  });
+
   app.post("/api/generate-image", async (req, res) => {
     try {
       const { prompt } = req.body;

@@ -163,6 +163,30 @@ describe('generate-article-stream', () => {
   });
 });
 
+describe('image-to-post (bilde til innlegg)', () => {
+  it('utan nøkkel gir 401', async () => {
+    const res = await request(app).post('/api/image-to-post').send({ imageBase64: 'abc', channel: 'LinkedIn' });
+    expect(res.status).toBe(401);
+  });
+
+  it('med nøkkel men utan bilde gir 400', async () => {
+    const res = await request(app)
+      .post('/api/image-to-post')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({ channel: 'LinkedIn' });
+    expect(res.status).toBe(400);
+  });
+
+  it('med nøkkel og bilde men utan kanal gir 400', async () => {
+    const res = await request(app)
+      .post('/api/image-to-post')
+      .set('x-api-key', 'fake-key-for-validation')
+      .send({ imageBase64: 'abc' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/kanal/i);
+  });
+});
+
 describe('Ukjend rute', () => {
   it('gir 404', async () => {
     const res = await request(app).get('/api/finst-ikkje');

@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { LayoutDashboard, CalendarDays, PenTool, Sparkles, ChevronRight, LogIn, LogOut, User, Trash2, Share2, CircleCheck, FolderOpen, Menu, X, Target, Building2, TrendingUp, FileText, Activity, Loader2, AlertCircle, Recycle } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, PenTool, Sparkles, ChevronRight, LogIn, LogOut, User, Trash2, Share2, CircleCheck, FolderOpen, Menu, X, Target, Building2, TrendingUp, FileText, Activity, Loader2, AlertCircle, Recycle, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrandSelector } from './components/BrandSelector';
 import { ConfirmModal } from './components/ConfirmModal';
@@ -16,6 +16,7 @@ const ArticleWizard = lazy(() => import('./features/articles/components/ArticleW
 const QualityPanel = lazy(() => import('./features/quality/components/QualityPanel').then(m => ({ default: m.QualityPanel })));
 const TrendAnalyzer = lazy(() => import('./components/TrendAnalyzer').then(m => ({ default: m.TrendAnalyzer })));
 const Repurpose = lazy(() => import('./components/Repurpose').then(m => ({ default: m.Repurpose })));
+const ImageToPost = lazy(() => import('./components/ImageToPost').then(m => ({ default: m.ImageToPost })));
 import { SiteAnalysisData, MonthPlanItem, MonthPlanData, SinglePostData } from './types';
 import { useAuth } from './contexts/AuthContext';
 import { BrandData, AnalysisData, PlanData, PostData, updateBrand } from './lib/db';
@@ -66,7 +67,7 @@ export default function App() {
   }, [apiKey]);
 
   // Initialize state from localStorage if available
-  const [activeTab, setActiveTab] = useState<'analysis' | 'competitor' | 'plan' | 'post' | 'article' | 'projects' | 'voice' | 'trends' | 'repurpose' | 'quality'>(() => {
+  const [activeTab, setActiveTab] = useState<'analysis' | 'competitor' | 'plan' | 'post' | 'article' | 'projects' | 'voice' | 'trends' | 'repurpose' | 'image' | 'quality'>(() => {
     const saved = localStorage.getItem('some_activeTab');
     return (saved as any) || 'analysis';
   });
@@ -474,6 +475,17 @@ export default function App() {
               <Recycle className={`w-5 h-5 ${activeTab === 'repurpose' ? 'text-indigo-100' : 'text-neutral-400'}`} />
               <span>Gjenbruk innhald</span>
             </button>
+            <button
+              onClick={() => { setActiveTab('image'); setIsMobileMenuOpen(false); }}
+              className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                activeTab === 'image'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+              }`}
+            >
+              <ImagePlus className={`w-5 h-5 ${activeTab === 'image' ? 'text-indigo-100' : 'text-neutral-400'}`} />
+              <span>Bilde til innlegg</span>
+            </button>
           </div>
 
           <div className="pt-4 mt-4 border-t border-neutral-100">
@@ -659,6 +671,7 @@ export default function App() {
                 {activeTab === 'article' && 'Skriv ein artikkel'}
                 {activeTab === 'trends' && 'Kva skjer i bransjen?'}
                 {activeTab === 'repurpose' && 'Gjenbruk innhald'}
+                {activeTab === 'image' && 'Bilde til innlegg'}
                 {activeTab === 'voice' && 'Brand Voice DNA'}
                 {activeTab === 'quality' && 'Kvalitet & Overvåking'}
               </h1>
@@ -670,6 +683,7 @@ export default function App() {
                 {activeTab === 'article' && 'Lag strukturerte artiklar med disposisjon først.'}
                 {activeTab === 'trends' && 'Søk etter dagsaktuelle trendar og lag innlegg basert på dei.'}
                 {activeTab === 'repurpose' && 'Gjer om ein artikkel eller eit innlegg til ferdige utkast for ein annan kanal.'}
+                {activeTab === 'image' && 'Last opp eit bilde og få ferdige innlegg med emojis og hashtags.'}
                 {activeTab === 'voice' && 'Analyser skrivestilen din for å la AI-en skrive nøyaktig som deg.'}
                 {activeTab === 'quality' && 'Mål AI-prestasjon, spor feil og evaluer utkast.'}
               </p>
@@ -1007,6 +1021,34 @@ export default function App() {
                 className="max-w-4xl mx-auto"
               >
                 <Repurpose
+                  apiKey={apiKey}
+                  selectedBrand={selectedBrand}
+                  brandVoice={voiceProfile}
+                  onEditFurther={(draft, channel) => {
+                    const newPost: SinglePostData = {
+                      hook: draft.angle,
+                      main_caption: draft.text,
+                      hashtag_suggestions: draft.hashtags || [],
+                      image_prompt: '',
+                      channel,
+                      content_type: 'post'
+                    };
+                    setSelectedPost(newPost);
+                    setActiveTab('post');
+                  }}
+                />
+              </motion.div>
+            )}
+            {activeTab === 'image' && selectedBrand && (
+              <motion.div
+                key="image"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="max-w-4xl mx-auto"
+              >
+                <ImageToPost
                   apiKey={apiKey}
                   selectedBrand={selectedBrand}
                   brandVoice={voiceProfile}
