@@ -8,6 +8,7 @@ import { ArticleData } from '../types';
 import { ErrorMessage } from '../../../components/ErrorMessage';
 import { AITextEditor } from '../../../components/AITextEditor';
 import { FidelityScore } from '../../../components/FidelityScore';
+import { WritingScore } from '../../../components/WritingScore';
 import { RepurposeResults } from '../../../components/RepurposeResults';
 import { useRepurpose, Draft } from '../../../lib/useRepurpose';
 
@@ -420,6 +421,9 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
               </div>
 
               {/* Brand voice fidelity (Grep 2) + auto-fiks mot stemma */}
+              {/* Sanntids lesbarheit + SEO (lokal utrekning, ingen AI-kall) */}
+              <WritingScore text={article} />
+
               <FidelityScore content={article} brandVoice={voiceProfile} onContentChange={setArticle} />
 
               {/* Multi-kanal-tilpasning: gjer den ferdige artikkelen om til sosiale utkast med eitt klikk */}
