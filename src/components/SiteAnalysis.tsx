@@ -615,22 +615,32 @@ export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePla
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              className="md:col-span-2 flex flex-col sm:flex-row justify-center gap-4 pt-8 pb-4"
+              className="md:col-span-2 flex flex-col items-center gap-2 pt-8 pb-4"
             >
-              <button
-                onClick={onGoToPlan}
-                className="px-8 py-4 bg-white text-indigo-600 border-2 border-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition-all flex items-center justify-center space-x-3 shadow-sm hover:shadow-md transform hover:-translate-y-1"
-              >
-                <span>Gå til innhaldsplan (manuell)</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              {onAutoGeneratePlan && (
+              {onAutoGeneratePlan ? (
+                <>
+                  <span className="text-xs font-semibold text-indigo-500 uppercase tracking-wider">Anbefalt neste steg</span>
+                  <button
+                    onClick={onAutoGeneratePlan}
+                    className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  >
+                    <Zap className="w-5 h-5" />
+                    <span>Generer innhaldsplan</span>
+                  </button>
+                  <button
+                    onClick={onGoToPlan}
+                    className="mt-1 text-sm text-neutral-500 hover:text-indigo-600 font-medium inline-flex items-center gap-1 transition-colors"
+                  >
+                    eller gå til innhaldsplan manuelt <ArrowRight className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
                 <button
-                  onClick={onAutoGeneratePlan}
-                  className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                  onClick={onGoToPlan}
+                  className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
-                  <Zap className="w-5 h-5" />
-                  <span>Generer innhaldsplan direkte</span>
+                  <span>Gå til innhaldsplan</span>
+                  <ArrowRight className="w-5 h-5" />
                 </button>
               )}
             </motion.div>

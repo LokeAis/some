@@ -3,6 +3,8 @@ import { LayoutDashboard, CalendarDays, PenTool, Sparkles, ChevronRight, LogIn, 
 import { motion, AnimatePresence } from 'motion/react';
 import { BrandSelector } from './components/BrandSelector';
 import { ConfirmModal } from './components/ConfirmModal';
+import { AccountMenu } from './components/AccountMenu';
+import { ApiKeyModal } from './components/ApiKeyModal';
 import { useBrandVoice } from './features/brandVoice/hooks/useBrandVoice';
 
 // Tunge fane-komponentar vert lasta on-demand (kvar fane = eigen chunk) for raskare førstelast.
@@ -25,7 +27,7 @@ import { ArticleData } from './features/articles/types';
 export default function App() {
   const { user, signIn, logOut, isAdmin } = useAuth();
   const [copiedShare, setCopiedShare] = useState(false);
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [apiKey, setApiKey] = useState(() => {
@@ -376,6 +378,15 @@ export default function App() {
         onConfirm={confirmClearSessionData}
         onCancel={() => setShowClearConfirm(false)}
       />
+      {showApiKeyModal && (
+        <ApiKeyModal
+          apiKey={apiKey}
+          setApiKey={setApiKey}
+          keyStatus={keyStatus}
+          keyError={keyError}
+          onClose={() => setShowApiKeyModal(false)}
+        />
+      )}
       {/* Mobile Header */}
       <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center space-x-2 text-indigo-600">
@@ -422,266 +433,72 @@ export default function App() {
           </button>
         </div>
         
-        <nav className="px-4 space-y-1.5 flex-1 mt-4">
-          <button
-            onClick={() => { setActiveTab('analysis'); setIsMobileMenuOpen(false); }}
-            className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'analysis'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-            }`}
-          >
-            <LayoutDashboard className={`w-5 h-5 ${activeTab === 'analysis' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-            <span>1. Analyse av nettside</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('competitor'); setIsMobileMenuOpen(false); }}
-            className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'competitor'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-            }`}
-          >
-            <Target className={`w-5 h-5 ${activeTab === 'competitor' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-            <span>2. Konkurrentanalyse</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('plan'); setIsMobileMenuOpen(false); }}
-            className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'plan'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-            }`}
-          >
-            <CalendarDays className={`w-5 h-5 ${activeTab === 'plan' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-            <span>3. Innhaldsplan</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('post'); setIsMobileMenuOpen(false); }}
-            className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'post'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-            }`}
-          >
-            <PenTool className={`w-5 h-5 ${activeTab === 'post' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-            <span>4. Skriv eit innlegg</span>
-          </button>
-          
-          <button
-            onClick={() => { setActiveTab('article'); setIsMobileMenuOpen(false); }}
-            className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'article'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-            }`}
-          >
-            <FileText className={`w-5 h-5 ${activeTab === 'article' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-            <span>5. Skriv ein artikkel</span>
-          </button>
-          
-          <div className="pt-4 mt-4 border-t border-neutral-100">
+        <nav className="px-4 space-y-1 flex-1 mt-2 overflow-y-auto">
+          <p className="px-3 pt-2 pb-1 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Hovudflyt</p>
+          {([
+            { id: 'analysis', label: '1. Analyse av nettside', Icon: LayoutDashboard },
+            { id: 'plan', label: '2. Innhaldsplan', Icon: CalendarDays },
+            { id: 'post', label: '3. Skriv eit innlegg', Icon: PenTool },
+            { id: 'article', label: '4. Skriv ein artikkel', Icon: FileText },
+          ] as const).map(({ id, label, Icon }) => (
             <button
-              onClick={() => { setActiveTab('trends'); setIsMobileMenuOpen(false); }}
-              className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                activeTab === 'trends'
+              key={id}
+              onClick={() => { setActiveTab(id); setIsMobileMenuOpen(false); }}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                activeTab === id
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
                   : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
               }`}
             >
-              <TrendingUp className={`w-5 h-5 ${activeTab === 'trends' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-              <span>Kva skjer i bransjen?</span>
+              <Icon className={`w-5 h-5 ${activeTab === id ? 'text-indigo-100' : 'text-neutral-400'}`} />
+              <span>{label}</span>
             </button>
-            <button
-              onClick={() => { setActiveTab('repurpose'); setIsMobileMenuOpen(false); }}
-              className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                activeTab === 'repurpose'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-              }`}
-            >
-              <Recycle className={`w-5 h-5 ${activeTab === 'repurpose' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-              <span>Gjenbruk innhald</span>
-            </button>
-            <button
-              onClick={() => { setActiveTab('image'); setIsMobileMenuOpen(false); }}
-              className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                activeTab === 'image'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-              }`}
-            >
-              <ImagePlus className={`w-5 h-5 ${activeTab === 'image' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-              <span>Bilde til innlegg</span>
-            </button>
-          </div>
+          ))}
 
-          <div className="pt-4 mt-4 border-t border-neutral-100">
+          <p className="px-3 pt-5 pb-1 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Verktøy</p>
+          {([
+            { id: 'competitor', label: 'Konkurrentanalyse', Icon: Target },
+            { id: 'trends', label: 'Kva skjer i bransjen?', Icon: TrendingUp },
+            { id: 'repurpose', label: 'Gjenbruk innhald', Icon: Recycle },
+            { id: 'image', label: 'Bilde til innlegg', Icon: ImagePlus },
+            { id: 'voice', label: 'Brand Voice DNA', Icon: Sparkles },
+            { id: 'projects', label: 'Mine prosjekt', Icon: FolderOpen },
+          ] as const).map(({ id, label, Icon }) => (
             <button
-              onClick={() => { setActiveTab('voice'); setIsMobileMenuOpen(false); }}
-              className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                activeTab === 'voice'
+              key={id}
+              onClick={() => { setActiveTab(id); setIsMobileMenuOpen(false); }}
+              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                activeTab === id
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                  : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900'
               }`}
             >
-              <Sparkles className={`w-5 h-5 ${activeTab === 'voice' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-              <span>Brand Voice DNA</span>
+              <Icon className={`w-4 h-4 ${activeTab === id ? 'text-indigo-100' : 'text-neutral-400'}`} />
+              <span>{label}</span>
             </button>
-          </div>
-          
-          <div className="pt-4 mt-4 border-t border-neutral-100">
-            <button
-              onClick={() => { setActiveTab('projects'); setIsMobileMenuOpen(false); }}
-              className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                activeTab === 'projects'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-              }`}
-            >
-              <FolderOpen className={`w-5 h-5 ${activeTab === 'projects' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-              <span>Mine prosjekt</span>
-            </button>
-          </div>
-
-          {isAdmin && (
-            <div className="pt-4 mt-4 border-t border-neutral-100">
-              <button
-                onClick={() => { setActiveTab('quality'); setIsMobileMenuOpen(false); }}
-                className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  activeTab === 'quality'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-                }`}
-              >
-                <Activity className={`w-5 h-5 ${activeTab === 'quality' ? 'text-indigo-100' : 'text-neutral-400'}`} />
-                <span>Kvalitet & Overvåking</span>
-              </button>
-            </div>
-          )}
+          ))}
         </nav>
 
-        <div className="p-4 mt-auto border-t border-neutral-100 space-y-2">
-          {user ? (
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2 px-2 py-1.5">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-medium">
-                  {user.displayName?.charAt(0) || <User className="w-4 h-4" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-neutral-900 truncate">
-                    {user.displayName || 'Brukar'}
-                  </p>
-                  <p className="text-xs text-neutral-500 truncate">
-                    {user.email}
-                  </p>
-                </div>
-              </div>
-              <button 
-                onClick={logOut}
-                className="w-full py-2 px-4 bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-700 text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Logg ut</span>
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={signIn}
-              className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2"
-            >
-              <LogIn className="w-4 h-4" />
-              <span>Logg inn med Google</span>
-            </button>
-          )}
-          {user && (
-            <div className="pt-4 mt-4 border-t border-neutral-100">
-              <button 
-                onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                className="w-full py-2 px-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-sm font-medium rounded-lg transition-colors flex items-center justify-between"
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="w-4 h-4 flex items-center justify-center font-mono text-xs font-bold">🔑</span>
-                  <span>API-nøkkel</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {apiKey && keyStatus === 'checking' && <Loader2 className="w-4 h-4 text-neutral-400 animate-spin" />}
-                  {apiKey && keyStatus === 'valid' && <CircleCheck className="w-4 h-4 text-emerald-600" />}
-                  {apiKey && keyStatus === 'invalid' && <AlertCircle className="w-4 h-4 text-red-500" />}
-                  <ChevronRight className={`w-4 h-4 transition-transform ${showApiKeyInput ? 'rotate-90' : ''}`} />
-                </div>
-              </button>
-              
-              {showApiKeyInput && (
-                <div className="mt-2 p-3 bg-neutral-50 rounded-lg border border-neutral-200">
-                  <label className="block text-xs font-medium text-neutral-700 mb-1">
-                    Gemini API-nøkkel
-                  </label>
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                  {apiKey.trim() && keyStatus === 'checking' && (
-                    <p className="text-xs text-neutral-500 mt-2 flex items-center gap-1.5">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Sjekkar nøkkelen...
-                    </p>
-                  )}
-                  {apiKey.trim() && keyStatus === 'valid' && (
-                    <p className="text-xs text-emerald-700 mt-2 flex items-center gap-1.5">
-                      <CircleCheck className="w-3 h-3" /> Nøkkelen er gyldig og klar til bruk.
-                    </p>
-                  )}
-                  {apiKey.trim() && keyStatus === 'invalid' && (
-                    <p className="text-xs text-red-600 mt-2 flex items-start gap-1.5">
-                      <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /> {keyError}
-                    </p>
-                  )}
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-indigo-600 hover:text-indigo-700 font-medium mt-2 inline-flex items-center gap-1"
-                  >
-                    Skaff ein gratis nøkkel her →
-                  </a>
-                  <p className="text-[10px] text-neutral-500 mt-2 leading-tight">
-                    Lagrast lokalt i nettlesaren din. Brukast til å generere innhald.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          <button 
-            onClick={loadDemoData}
-            className="w-full py-2 px-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 mt-2"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Sjå eit eksempel</span>
-          </button>
-          <button 
-            onClick={() => {
+        <div className="p-3 mt-auto border-t border-neutral-100">
+          <AccountMenu
+            user={user}
+            isAdmin={isAdmin}
+            keyStatus={keyStatus}
+            hasApiKey={!!apiKey}
+            showReset={!!(analysisData || selectedPlanItem)}
+            copiedShare={copiedShare}
+            onSignIn={signIn}
+            onLogout={logOut}
+            onOpenApiKey={() => setShowApiKeyModal(true)}
+            onDemo={loadDemoData}
+            onShare={() => {
               navigator.clipboard.writeText(window.location.href);
               setCopiedShare(true);
               setTimeout(() => setCopiedShare(false), 2000);
             }}
-            className="w-full py-2 px-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 mt-2"
-          >
-            {copiedShare ? <CircleCheck className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
-            <span>{copiedShare ? 'Lenke kopiert!' : 'Del appen'}</span>
-          </button>
-          {(analysisData || selectedPlanItem) && (
-            <button 
-              onClick={clearSessionData}
-              className="w-full py-2 px-4 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 mt-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>Start på nytt</span>
-            </button>
-          )}
+            onReset={clearSessionData}
+            onQuality={() => { setActiveTab('quality'); setIsMobileMenuOpen(false); }}
+          />
         </div>
       </aside>
 
@@ -689,7 +506,7 @@ export default function App() {
       <main className="flex-1 overflow-y-auto flex flex-col">
         {/* Top Header */}
         <header className="bg-white border-b border-neutral-200 px-6 md:px-10 py-6 sticky top-0 z-10">
-          <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-neutral-900">
                 {activeTab === 'analysis' && 'Analyse av nettside'}
@@ -718,32 +535,50 @@ export default function App() {
             </div>
 
             {/* Stepper */}
-            <div className="hidden md:flex items-center space-x-2 text-sm font-medium">
-              <div className={`flex items-center space-x-1.5 ${activeTab === 'analysis' ? 'text-indigo-600' : analysisData ? 'text-emerald-600' : 'text-neutral-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${activeTab === 'analysis' ? 'bg-indigo-100' : analysisData ? 'bg-emerald-100' : 'bg-neutral-100'}`}>1</div>
-                <span className="hidden lg:inline">Analyse</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-neutral-300" />
-              <div className={`flex items-center space-x-1.5 ${activeTab === 'plan' ? 'text-indigo-600' : 'text-neutral-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${activeTab === 'plan' ? 'bg-indigo-100' : 'bg-neutral-100'}`}>2</div>
-                <span className="hidden lg:inline">Plan</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-neutral-300" />
-              <div className={`flex items-center space-x-1.5 ${activeTab === 'post' ? 'text-indigo-600' : 'text-neutral-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${activeTab === 'post' ? 'bg-indigo-100' : 'bg-neutral-100'}`}>3</div>
-                <span className="hidden lg:inline">Innlegg</span>
-              </div>
-              <div className="w-8 h-px bg-neutral-200"></div>
-              <div className={`flex items-center space-x-1.5 ${activeTab === 'article' ? 'text-indigo-600' : 'text-neutral-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${activeTab === 'article' ? 'bg-indigo-100' : 'bg-neutral-100'}`}>4</div>
-                <span className="hidden lg:inline">Artikkel</span>
-              </div>
-            </div>
+            {(() => {
+              const steps = [
+                { id: 'analysis', label: 'Analyse', done: !!analysisData },
+                { id: 'plan', label: 'Plan', done: !!selectedPlan },
+                { id: 'post', label: 'Innlegg', done: !!selectedPost },
+                { id: 'article', label: 'Artikkel', done: !!selectedArticle },
+              ] as const;
+              const activeIdx = steps.findIndex(s => s.id === activeTab);
+              return (
+                <div className="hidden md:flex flex-col items-start lg:items-end gap-1.5">
+                  <div className="flex items-center gap-1.5">
+                    {steps.map((s, i) => {
+                      const isActive = activeTab === s.id;
+                      return (
+                        <div key={s.id} className="flex items-center gap-1.5">
+                          {i > 0 && <div className="w-5 h-px bg-neutral-200" />}
+                          <button
+                            onClick={() => setActiveTab(s.id)}
+                            className={`flex items-center gap-1.5 rounded-full text-sm font-medium transition-all ${
+                              isActive ? 'bg-indigo-600 text-white px-3 py-1.5 shadow-sm'
+                              : s.done ? 'text-emerald-600 px-1.5 py-1 hover:bg-emerald-50'
+                              : 'text-neutral-400 px-1.5 py-1 hover:bg-neutral-100'
+                            }`}
+                          >
+                            {s.done && !isActive
+                              ? <CircleCheck className="w-4 h-4" />
+                              : <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${isActive ? 'bg-white/20' : 'bg-neutral-100'}`}>{i + 1}</span>}
+                            <span>{s.label}</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {activeIdx >= 0 && (
+                    <p className="text-xs text-neutral-400">Steg {activeIdx + 1} av {steps.length}</p>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </header>
 
         <div className="p-6 md:p-10 flex-1">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-7xl mx-auto">
           <Suspense fallback={<div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>}>
           {/* Velkomst-banneret kan visast samstundes med analyse-fana, så det har eigen AnimatePresence (ikkje mode="wait"). */}
           <AnimatePresence>
@@ -1132,7 +967,7 @@ export default function App() {
 
         {/* Footer */}
         <footer className="border-t border-neutral-200 bg-white py-8 px-6 md:px-10 mt-auto pb-24 md:pb-8">
-          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
             <div className="text-sm text-neutral-500">
               © {new Date().getFullYear()} SoMe-assistenten. Alle rettar reservert.
             </div>
