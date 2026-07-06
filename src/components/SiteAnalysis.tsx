@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Loader2, ArrowRight, Globe, Target, MessageSquare, Zap, AlertTriangle, CircleCheck, Save, X } from 'lucide-react';
+import { Loader2, ArrowRight, Globe, Target, MessageSquare, Zap, AlertTriangle, CircleCheck, Save, X, PenTool, FileText } from 'lucide-react';
 import { SiteAnalysisData } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,9 +16,12 @@ interface Props {
   /** Sann når `data` kjem frå ei automatisk henting av siste lagra analyse. */
   autoLoadedNotice?: boolean;
   onDismissAutoLoadedNotice?: () => void;
+  /** Handlingsretta Golden Nuggets: bruk ein nugget som utgangspunkt for innlegg/artikkel. */
+  onUseNuggetForPost?: (nugget: string) => void;
+  onUseNuggetForArticle?: (nugget: string) => void;
 }
 
-export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePlan, selectedBrand, autoLoadedNotice, onDismissAutoLoadedNotice }: Props) {
+export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePlan, selectedBrand, autoLoadedNotice, onDismissAutoLoadedNotice, onUseNuggetForPost, onUseNuggetForArticle }: Props) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -446,7 +449,7 @@ export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePla
               )}
               <button
                 onClick={onGoToPlan}
-                className="px-4 py-2 bg-indigo-600 border border-transparent text-white font-medium rounded-lg hover:bg-indigo-700 transition-all flex items-center space-x-2 text-sm shadow-sm"
+                className="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 font-medium rounded-lg hover:bg-neutral-50 transition-all flex items-center space-x-2 text-sm shadow-sm"
               >
                 <span>Gå vidare til innhaldsplan</span>
                 <ArrowRight className="w-4 h-4" />
@@ -454,21 +457,24 @@ export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePla
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <motion.div 
+          {/* 2-kolonne på store skjermar: funn til venstre, kvalitetssjekk/handlingar til høgre */}
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+          <div className="space-y-6">
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 space-y-4 md:col-span-2"
+              className="bg-gradient-to-br from-indigo-50 via-white to-white p-6 md:p-8 rounded-2xl shadow-sm border border-indigo-100"
             >
-              <div className="flex items-center space-x-2 text-indigo-600 mb-2">
+              <div className="flex items-center space-x-2 text-indigo-700 mb-3">
                 <Globe className="w-5 h-5" />
-                <h4 className="font-semibold">Kort om bedrifta</h4>
+                <h4 className="font-semibold text-lg">Oppsummering av analysen</h4>
               </div>
-              <p className="text-neutral-600 text-sm leading-relaxed">{data.company_summary}</p>
+              <p className="text-neutral-700 leading-relaxed">{data.company_summary}</p>
             </motion.div>
 
-            <motion.div 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -529,7 +535,7 @@ export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePla
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 space-y-4"
+              className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 space-y-4 md:col-span-2"
             >
               <div className="flex items-center space-x-2 text-blue-600 mb-2">
                 <MessageSquare className="w-5 h-5" />
@@ -560,90 +566,150 @@ export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePla
               </div>
             </motion.div>
 
+            </div>
+
             {data.golden_nuggets && data.golden_nuggets.length > 0 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-2xl shadow-sm border border-amber-200 space-y-4 md:col-span-2"
+                className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-2xl shadow-sm border border-amber-200 space-y-4"
               >
                 <div className="flex items-center space-x-2 text-amber-700 mb-2">
                   <Zap className="w-5 h-5" />
                   <h4 className="font-semibold">Golden Nuggets</h4>
                 </div>
-                <p className="text-sm text-amber-800 mb-4">Sterke sitat, unike verdiforslag eller slåande fakta frå teksten som kan brukast som 'hooks' i sosiale medium.</p>
+                <p className="text-sm text-amber-800 mb-4">Sterke hooks frå nettsida di – klare til å brukast. Vel kva du vil lage av dei:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {data.golden_nuggets.map((nugget, i) => (
-                    <div key={i} className="bg-white p-4 rounded-xl border border-amber-100 shadow-sm relative">
+                    <div key={i} className="bg-white p-4 rounded-xl border border-amber-100 shadow-sm relative flex flex-col">
                       <div className="absolute -top-2 -left-2 w-6 h-6 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-xs font-bold border border-amber-200">
                         {i + 1}
                       </div>
-                      <p className="text-neutral-700 text-sm italic">"{nugget}"</p>
+                      <p className="text-neutral-700 text-sm italic flex-grow">"{nugget}"</p>
+                      {(onUseNuggetForPost || onUseNuggetForArticle) && (
+                        <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-amber-100">
+                          {onUseNuggetForPost && (
+                            <button
+                              onClick={() => onUseNuggetForPost(nugget)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors"
+                            >
+                              <PenTool className="w-3 h-3" /> Lag innlegg
+                            </button>
+                          )}
+                          {onUseNuggetForArticle && (
+                            <button
+                              onClick={() => onUseNuggetForArticle(nugget)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-amber-200 text-amber-800 hover:bg-amber-50 transition-colors"
+                            >
+                              <FileText className="w-3 h-3" /> Artikkelidé
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            <motion.div 
+          </div>
+
+          {/* Høgrepanel: neste steg, status og kvalitetssjekk (sticky på store skjermar) */}
+          <aside className="space-y-4 xl:sticky xl:top-24">
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-red-50 p-6 rounded-2xl shadow-sm border border-red-100 space-y-4"
+              transition={{ delay: 0.2 }}
+              className="bg-indigo-600 text-white rounded-2xl p-5 shadow-lg"
             >
-              <div className="flex items-center space-x-2 text-red-600 mb-2">
-                <AlertTriangle className="w-5 h-5" />
-                <h4 className="font-semibold">Risikoar & Manglar</h4>
-              </div>
-              <ul className="mt-2 space-y-2">
-                {(data.brand_risks_or_gaps || []).map((risk, i) => (
-                  <li key={i} className="text-sm text-red-800 flex items-start bg-red-100/50 p-2 rounded-lg border border-red-100">
-                    <AlertTriangle className="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>{risk}</span>
-                  </li>
-                ))}
-              </ul>
-              {data.confidence_notes && (
-                <div className="mt-4 pt-4 border-t border-red-200/50">
-                  <span className="text-xs font-semibold text-red-500 uppercase tracking-wider">AI-notat om tryggleik</span>
-                  <p className="text-red-800 text-sm mt-1 italic">{data.confidence_notes}</p>
-                </div>
-              )}
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="md:col-span-2 flex flex-col items-center gap-2 pt-8 pb-4"
-            >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-200">Anbefalt neste steg</span>
+              <p className="text-sm text-indigo-100 mt-1.5 mb-4">
+                Analysen er klar. Lag ein 30-dagars innhaldsplan bygd på funna.
+              </p>
               {onAutoGeneratePlan ? (
                 <>
-                  <span className="text-xs font-semibold text-indigo-500 uppercase tracking-wider">Anbefalt neste steg</span>
                   <button
                     onClick={onAutoGeneratePlan}
-                    className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    className="w-full py-3 bg-white text-indigo-700 font-bold rounded-xl hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
                   >
-                    <Zap className="w-5 h-5" />
-                    <span>Generer innhaldsplan</span>
+                    <Zap className="w-4 h-4" />
+                    Generer innhaldsplan
                   </button>
                   <button
                     onClick={onGoToPlan}
-                    className="mt-1 text-sm text-neutral-500 hover:text-indigo-600 font-medium inline-flex items-center gap-1 transition-colors"
+                    className="w-full mt-2 text-xs text-indigo-200 hover:text-white font-medium inline-flex items-center justify-center gap-1 transition-colors"
                   >
-                    eller gå til innhaldsplan manuelt <ArrowRight className="w-4 h-4" />
+                    eller gå manuelt til planen <ArrowRight className="w-3 h-3" />
                   </button>
                 </>
               ) : (
                 <button
                   onClick={onGoToPlan}
-                  className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="w-full py-3 bg-white text-indigo-700 font-bold rounded-xl hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
-                  <span>Gå til innhaldsplan</span>
-                  <ArrowRight className="w-5 h-5" />
+                  Gå til innhaldsplan
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               )}
             </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-5"
+            >
+              <h5 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Status</h5>
+              <ul className="space-y-2.5 text-sm">
+                <li className="flex items-center gap-2 text-neutral-700">
+                  <CircleCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                  Nettsideanalyse fullført
+                </li>
+                <li className="flex items-center gap-2 text-neutral-700">
+                  {(data.id || saveSuccess)
+                    ? <><CircleCheck className="w-4 h-4 text-emerald-500 shrink-0" /> Lagra på kunden</>
+                    : <><span className="w-4 h-4 flex items-center justify-center shrink-0"><span className="w-2 h-2 rounded-full bg-neutral-300"></span></span> Ikkje lagra enno</>}
+                </li>
+                <li className="flex items-center gap-2 text-neutral-700">
+                  {data.competitor_analysis
+                    ? <><CircleCheck className="w-4 h-4 text-emerald-500 shrink-0" /> Konkurrentanalyse køyrd</>
+                    : <><span className="w-4 h-4 flex items-center justify-center shrink-0"><span className="w-2 h-2 rounded-full bg-neutral-300"></span></span> Konkurrentanalyse ikkje køyrd</>}
+                </li>
+              </ul>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-5"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                <h5 className="font-semibold text-sm text-neutral-900">Kvalitetssjekk</h5>
+              </div>
+              {(data.brand_risks_or_gaps && data.brand_risks_or_gaps.length > 0) ? (
+                <ul className="space-y-2">
+                  {data.brand_risks_or_gaps.map((risk, i) => (
+                    <li key={i} className="text-sm text-neutral-700 flex items-start gap-2 bg-amber-50 p-2.5 rounded-lg border border-amber-100">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <span>{risk}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-emerald-700 flex items-center gap-2">
+                  <CircleCheck className="w-4 h-4" /> Ingen store manglar funne.
+                </p>
+              )}
+              {data.confidence_notes && (
+                <p className="text-xs text-neutral-500 italic mt-3 pt-3 border-t border-neutral-100">
+                  {data.confidence_notes}
+                </p>
+              )}
+            </motion.div>
+          </aside>
           </div>
         </motion.div>
       )}

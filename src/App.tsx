@@ -732,6 +732,34 @@ export default function App() {
                   selectedBrand={selectedBrand}
                   autoLoadedNotice={justAutoLoadedAnalysis}
                   onDismissAutoLoadedNotice={() => setJustAutoLoadedAnalysis(false)}
+                  onUseNuggetForPost={(nugget) => {
+                    // Syntetisk planpunkt → gjenbrukar SinglePost sin prefill + autogenerering.
+                    setSelectedPost(null);
+                    setSelectedPlanItem({
+                      day: 1,
+                      channel: 'Facebook',
+                      theme: nugget.length > 80 ? `${nugget.slice(0, 77)}...` : nugget,
+                      post_goal: 'Skape engasjement',
+                      format: 'Tekst',
+                      angle: `Bygg innlegget rundt denne hooken: «${nugget}»`,
+                      cta: '',
+                      notes: ''
+                    });
+                    setActiveTab('post');
+                  }}
+                  onUseNuggetForArticle={(nugget) => {
+                    setSelectedArticle({
+                      uid: user?.uid || '',
+                      brandId: selectedBrand?.id || '',
+                      topic: nugget,
+                      outline: '',
+                      content: '',
+                      status: 'draft',
+                      createdAt: Date.now(),
+                      updatedAt: Date.now()
+                    });
+                    setActiveTab('article');
+                  }}
                 />
               </motion.div>
             )}
