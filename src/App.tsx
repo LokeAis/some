@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { LayoutDashboard, CalendarDays, PenTool, Sparkles, ChevronRight, LogIn, LogOut, User, Trash2, Share2, CircleCheck, FolderOpen, Menu, X, Target, Building2, TrendingUp, FileText, Activity, Loader2, AlertCircle, Recycle, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrandSelector } from './components/BrandSelector';
@@ -19,7 +19,7 @@ const Repurpose = lazy(() => import('./components/Repurpose').then(m => ({ defau
 const ImageToPost = lazy(() => import('./components/ImageToPost').then(m => ({ default: m.ImageToPost })));
 import { SiteAnalysisData, MonthPlanItem, MonthPlanData, SinglePostData } from './types';
 import { useAuth } from './contexts/AuthContext';
-import { BrandData, AnalysisData, PlanData, PostData, updateBrand } from './lib/db';
+import { BrandData, AnalysisData, PlanData, PostData, updateBrand, getUserAnalyses } from './lib/db';
 import { ArticleData } from './features/articles/types';
 
 export default function App() {
@@ -81,7 +81,13 @@ export default function App() {
       return null;
     }
   });
-  
+  // Sann rett etter at analysisData vart henta automatisk frå Firestore (ikkje ved fersk
+  // generering) – styrer ei dismissible informasjonslinje i SiteAnalysis.
+  const [justAutoLoadedAnalysis, setJustAutoLoadedAnalysis] = useState(false);
+  // Hugsar kva brandId det alt er forsøkt auto-lasting for, så vi ikkje lastar på nytt
+  // kvar gong analysisData vert null (t.d. viss brukaren sjølv tømmer han).
+  const autoLoadedBrandIdRef = useRef<string | null>(null);
+
   const [selectedPlanItem, setSelectedPlanItem] = useState<MonthPlanItem | null>(() => {
     const saved = localStorage.getItem('some_selectedPlanItem');
     try {
@@ -140,6 +146,7 @@ export default function App() {
     if (selectedBrand?.id !== brand?.id) {
       setSelectedBrand(brand);
       setAnalysisData(null);
+      setJustAutoLoadedAnalysis(false);
       setSelectedPlanItem(null);
       setSelectedPlan(null);
       setSelectedPost(null);
@@ -164,6 +171,27 @@ export default function App() {
       keysToRemove.forEach(key => localStorage.removeItem(key));
     }
   };
+
+  // Auto-last siste lagra analyse (med konkurrentanalysen nesta i) når ei merkevare er
+  // vald og det ikkje alt finst noko å vise (t.d. eit ulagra utkast). Sparer brukaren for
+  // å måtte gå via «Mine prosjekt» kvar gong dei kjem tilbake til ei merkevare.
+  useEffect(() => {
+    if (!user || !selectedBrand || analysisData) return;
+    if (autoLoadedBrandIdRef.current === selectedBrand.id) return;
+    autoLoadedBrandIdRef.current = selectedBrand.id ?? null;
+
+    (async () => {
+      try {
+        const analyses = await getUserAnalyses(user.uid, selectedBrand.id!);
+        if (analyses && analyses.length > 0) {
+          setAnalysisData(analyses[0] as SiteAnalysisData);
+          setJustAutoLoadedAnalysis(true);
+        }
+      } catch (e) {
+        console.error('Klarte ikkje å auto-laste siste analyse:', e);
+      }
+    })();
+  }, [user, selectedBrand, analysisData]);
 
   // Save to localStorage whenever state changes
   useEffect(() => {
@@ -858,15 +886,17 @@ export default function App() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <SiteAnalysis 
-                  data={analysisData} 
-                  onDataUpdate={setAnalysisData} 
+                <SiteAnalysis
+                  data={analysisData}
+                  onDataUpdate={setAnalysisData}
                   onGoToPlan={handleUseAnalysisForPlan}
                   onAutoGeneratePlan={() => {
                     setAutoGeneratePlan(true);
                     setActiveTab('plan');
                   }}
                   selectedBrand={selectedBrand}
+                  autoLoadedNotice={justAutoLoadedAnalysis}
+                  onDismissAutoLoadedNotice={() => setJustAutoLoadedAnalysis(false)}
                 />
               </motion.div>
             )}

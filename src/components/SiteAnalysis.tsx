@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Loader2, ArrowRight, Globe, Target, MessageSquare, Zap, AlertTriangle, CircleCheck, Save } from 'lucide-react';
+import { Loader2, ArrowRight, Globe, Target, MessageSquare, Zap, AlertTriangle, CircleCheck, Save, X } from 'lucide-react';
 import { SiteAnalysisData } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,9 +13,12 @@ interface Props {
   onGoToPlan: () => void;
   onAutoGeneratePlan?: () => void;
   selectedBrand: BrandData | null;
+  /** Sann når `data` kjem frå ei automatisk henting av siste lagra analyse. */
+  autoLoadedNotice?: boolean;
+  onDismissAutoLoadedNotice?: () => void;
 }
 
-export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePlan, selectedBrand }: Props) {
+export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePlan, selectedBrand, autoLoadedNotice, onDismissAutoLoadedNotice }: Props) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -128,6 +131,7 @@ export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePla
       
       const result = await response.json();
       onDataUpdate(result);
+      onDismissAutoLoadedNotice?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein ukjend feil oppstod');
     } finally {
@@ -184,11 +188,27 @@ export function SiteAnalysis({ data, onDataUpdate, onGoToPlan, onAutoGeneratePla
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-8"
     >
+      {autoLoadedNotice && data && (
+        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-start justify-between gap-3">
+          <p className="text-sm text-indigo-800">
+            📌 Viser siste lagra analyse for denne merkevara. Køyr ein ny analyse for å oppdatere,
+            eller sjå andre lagra analysar under «Mine prosjekt».
+          </p>
+          <button
+            onClick={onDismissAutoLoadedNotice}
+            className="text-indigo-400 hover:text-indigo-700 transition-colors shrink-0"
+            aria-label="Lukk"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200">
         <form onSubmit={handleAnalyze} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
