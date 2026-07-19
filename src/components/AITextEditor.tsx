@@ -169,7 +169,7 @@ export function AITextEditor({ value, onChange, apiKey, placeholder, className =
         }}
         placeholder={placeholder}
         disabled={disabled || isProcessing}
-        className={`w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-colors ${className}`}
+        className={`w-full p-4 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-colors ${className}`}
       />
     </div>
   );

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "landingside-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["-y", "serve", "-l", "8931", "D:\\Test Landingside"],
+      "port": 8931
+    }
+  ]
+}

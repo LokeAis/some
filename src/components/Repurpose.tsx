@@ -45,15 +45,15 @@ export function Repurpose({ apiKey, selectedBrand, brandVoice, onEditFurther }: 
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
+      <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+        <div className="p-6 border-b border-neutral-100 bg-gradient-to-r from-emerald-50 to-white">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
               <Recycle className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">Gjenbruk innhald</h2>
+            <h2 className="text-xl font-semibold text-neutral-900">Gjenbruk innhald</h2>
           </div>
-          <p className="text-gray-600 text-sm">
+          <p className="text-neutral-600 text-sm">
             Lim inn ein artikkel, eit innlegg eller eigen tekst — få lynanalyse og 2–3 ferdige utkast
             skreddarsydde for kanalen du vel.
           </p>
@@ -67,18 +67,18 @@ export function Repurpose({ apiKey, selectedBrand, brandVoice, onEditFurther }: 
             </div>
           )}
 
-          <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50">
+          <div className="inline-flex rounded-lg border border-neutral-200 p-1 bg-neutral-50">
             <button
               type="button"
               onClick={() => setInputMode('url')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${inputMode === 'url' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${inputMode === 'url' ? 'bg-white text-emerald-700 shadow-sm' : 'text-neutral-500'}`}
             >
               <LinkIcon className="w-4 h-4" /> Lim inn lenke
             </button>
             <button
               type="button"
               onClick={() => setInputMode('text')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${inputMode === 'text' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${inputMode === 'text' ? 'bg-white text-emerald-700 shadow-sm' : 'text-neutral-500'}`}
             >
               <FileText className="w-4 h-4" /> Lim inn tekst
             </button>
@@ -90,14 +90,14 @@ export function Repurpose({ apiKey, selectedBrand, brandVoice, onEditFurther }: 
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://ei-nettside.no/artikkel"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+              className="w-full p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
             />
           ) : (
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Lim inn innhaldet du vil gjenbruke..."
-              className="w-full h-36 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-sm"
+              className="w-full h-36 p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-sm"
             />
           )}
 
@@ -105,7 +105,7 @@ export function Repurpose({ apiKey, selectedBrand, brandVoice, onEditFurther }: 
             <select
               value={channel}
               onChange={(e) => setChannel(e.target.value)}
-              className="p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm bg-white"
+              className="p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm bg-white"
             >
               {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
             </select>

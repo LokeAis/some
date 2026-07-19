@@ -25,7 +25,24 @@ import { BrandData, AnalysisData, PlanData, PostData, updateBrand, getUserAnalys
 import { ArticleData } from './features/articles/types';
 
 export default function App() {
-  const { user, signIn, logOut, isAdmin } = useAuth();
+  const { user, signIn, logOut, isAdmin, deleteAccount } = useAuth();
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+
+  const confirmDeleteAccount = async () => {
+    setDeletingAccount(true);
+    try {
+      await deleteAccount();
+      // Auth-lyttaren set user=null; rydd app-state så neste innlogging startar blankt.
+      setShowDeleteAccountConfirm(false);
+      handleBrandSelect(null);
+    } catch (e) {
+      console.error('Konto-sletting feila:', e);
+      alert(e instanceof Error ? `Klarte ikkje å slette kontoen: ${e.message}` : 'Klarte ikkje å slette kontoen. Prøv igjen.');
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
   const [copiedShare, setCopiedShare] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -378,6 +395,16 @@ export default function App() {
         onConfirm={confirmClearSessionData}
         onCancel={() => setShowClearConfirm(false)}
       />
+      <ConfirmModal
+        isOpen={showDeleteAccountConfirm}
+        title="Slett kontoen din permanent"
+        message={deletingAccount
+          ? 'Slettar kontoen og alt innhald... Ikkje lukk vindauget.'
+          : 'Dette slettar kontoen din og ALT innhald permanent: merkevarer, analysar, planar, innlegg, artiklar og stemmeprofiler. Handlinga kan ikkje angrast. Er du heilt sikker?'}
+        confirmText={deletingAccount ? 'Slettar...' : 'Ja, slett alt'}
+        onConfirm={deletingAccount ? () => {} : confirmDeleteAccount}
+        onCancel={() => { if (!deletingAccount) setShowDeleteAccountConfirm(false); }}
+      />
       {showApiKeyModal && (
         <ApiKeyModal
           apiKey={apiKey}
@@ -498,6 +525,7 @@ export default function App() {
             }}
             onReset={clearSessionData}
             onQuality={() => { setActiveTab('quality'); setIsMobileMenuOpen(false); }}
+            onDeleteAccount={() => setShowDeleteAccountConfirm(true)}
           />
         </div>
       </aside>
@@ -831,7 +859,7 @@ export default function App() {
                 <ArticleWizard
                   apiKey={apiKey}
                   selectedBrand={selectedBrand}
-                  voiceProfile={voiceProfile}
+                  voiceProfile={voiceProfile ?? undefined}
                   user={user}
                   initialArticle={selectedArticle}
                   onEditFurther={(draft, channel) => {

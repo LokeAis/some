@@ -156,15 +156,15 @@ export function TrendAnalyzer({ apiKey, selectedBrand, brandVoiceDNA, onPostGene
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+    <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+      <div className="p-6 border-b border-neutral-100 bg-gradient-to-r from-blue-50 to-white">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
             <TrendingUp className="w-5 h-5" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900">Kva skjer i bransjen i dag?</h2>
+          <h2 className="text-xl font-semibold text-neutral-900">Kva skjer i bransjen i dag?</h2>
         </div>
-        <p className="text-gray-600 text-sm">
+        <p className="text-neutral-600 text-sm">
           Søk etter dei nyaste trendane og nyheitene i din bransje. AI-en brukar Google Søk for å finne dagsaktuelt innhald du kan dele med følgjarane dine.
         </p>
       </div>
@@ -184,7 +184,7 @@ export function TrendAnalyzer({ apiKey, selectedBrand, brandVoiceDNA, onPostGene
               value={industry}
               onChange={(e) => setIndustry(e.target.value)}
               placeholder="T.d. Marknadsføring, Kunstig Intelligens, Eigedom..."
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <button
@@ -202,8 +202,8 @@ export function TrendAnalyzer({ apiKey, selectedBrand, brandVoiceDNA, onPostGene
         </form>
 
         {trends.length > 0 && (
-          <div className="space-y-4 pt-4 border-t border-gray-100">
-            <h3 className="text-lg font-medium text-gray-900">Topp 3 trendar akkurat no</h3>
+          <div className="space-y-4 pt-4 border-t border-neutral-100">
+            <h3 className="text-lg font-medium text-neutral-900">Topp 3 trendar akkurat no</h3>
             <div className="grid gap-4 md:grid-cols-3">
               {trends.map((trend, index) => (
                 <motion.div 
@@ -211,14 +211,14 @@ export function TrendAnalyzer({ apiKey, selectedBrand, brandVoiceDNA, onPostGene
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   key={index} 
-                  className="bg-gray-50 rounded-xl p-5 border border-gray-100 flex flex-col h-full"
+                  className="bg-neutral-50 rounded-xl p-5 border border-neutral-100 flex flex-col h-full"
                 >
-                  <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">{trend.title}</h4>
-                  <p className="text-sm text-gray-600 mb-4 flex-grow">{trend.summary}</p>
+                  <h4 className="font-semibold text-neutral-900 mb-2 line-clamp-2">{trend.title}</h4>
+                  <p className="text-sm text-neutral-600 mb-4 flex-grow">{trend.summary}</p>
                   <button
                     onClick={() => handleGeneratePost(trend)}
                     disabled={isGenerating}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors text-sm font-medium"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-white border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:text-blue-600 transition-colors text-sm font-medium"
                   >
                     {isGenerating ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -234,12 +234,12 @@ export function TrendAnalyzer({ apiKey, selectedBrand, brandVoiceDNA, onPostGene
             </div>
             
             {sources.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Kjelder (Citations):</h4>
+              <div className="mt-6 pt-4 border-t border-neutral-100">
+                <h4 className="text-sm font-medium text-neutral-700 mb-3">Kjelder (Citations):</h4>
                 <ul className="space-y-2">
                   {sources.map((source, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
-                      <ArrowRight className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                      <ArrowRight className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
                       <a 
                         href={source.url} 
                         target="_blank" 

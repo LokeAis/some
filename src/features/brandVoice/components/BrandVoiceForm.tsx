@@ -161,8 +161,8 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
 
   const renderArrayEditor = (field: ArrayField, label: string, hint: string, placeholder: string) => (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-900">{label}</label>
-      <p className="text-xs text-gray-500">{hint}</p>
+      <label className="block text-sm font-medium text-neutral-900">{label}</label>
+      <p className="text-xs text-neutral-500">{hint}</p>
       <div className="space-y-2">
         {(profile[field]?.length ? profile[field]! : ['']).map((item, index) => (
           <div key={`${field}-${index}`} className="flex gap-2">
@@ -170,10 +170,10 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
               type="text"
               value={item}
               onChange={(e) => handleArrayChange(field, index, e.target.value)}
-              className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+              className="flex-1 p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
               placeholder={placeholder}
             />
-            <button onClick={() => removeArrayItem(field, index)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+            <button onClick={() => removeArrayItem(field, index)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors">
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
@@ -186,15 +186,15 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white">
+    <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+      <div className="p-6 border-b border-neutral-100 bg-gradient-to-r from-purple-50 to-white">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
             <Sparkles className="w-5 h-5" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900">Brand Voice DNA</h2>
+          <h2 className="text-xl font-semibold text-neutral-900">Brand Voice DNA</h2>
         </div>
-        <p className="text-gray-600 text-sm">
+        <p className="text-neutral-600 text-sm">
           Lim inn 3–5 av dine beste tekstar, eller hent ein URL. AI-en destillerer eit faktisk
           stemme-fingeravtrykk — tone, rytme, vokabular og forbodne fraser — som styrer alt innhald.
         </p>
@@ -210,16 +210,16 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
 
         {/* Steg 1 – Ekstraher */}
         <div className="space-y-3">
-          <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50">
+          <div className="inline-flex rounded-lg border border-neutral-200 p-1 bg-neutral-50">
             <button
               onClick={() => setInputMode('text')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${inputMode === 'text' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${inputMode === 'text' ? 'bg-white text-purple-700 shadow-sm' : 'text-neutral-500'}`}
             >
               <FileText className="w-4 h-4" /> Lim inn tekst
             </button>
             <button
               onClick={() => setInputMode('url')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${inputMode === 'url' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${inputMode === 'url' ? 'bg-white text-purple-700 shadow-sm' : 'text-neutral-500'}`}
             >
               <LinkIcon className="w-4 h-4" /> Hent frå URL
             </button>
@@ -230,7 +230,7 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
               value={samples}
               onChange={(e) => setSamples(e.target.value)}
               placeholder={"Eksempel 1:\nHei alle saman! I dag har vi lansert...\n\nEksempel 2:\nVisste du at..."}
-              className="w-full h-40 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+              className="w-full h-40 p-4 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
             />
           ) : (
             <input
@@ -238,7 +238,7 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://dinbedrift.no"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+              className="w-full p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
             />
           )}
 
@@ -256,41 +256,41 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
 
         {/* Steg 2 – Stadfest og rediger den ekstraherte profilen */}
         {hasProfile && (
-          <div className="space-y-8 pt-6 border-t border-gray-100">
-            <p className="text-sm text-gray-500 -mb-2">
+          <div className="space-y-8 pt-6 border-t border-neutral-100">
+            <p className="text-sm text-neutral-500 -mb-2">
               Dette er stemma AI-en oppfatta. Juster det som ikkje stemmer, og lagre.
             </p>
 
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-900">Oppsummering av tonen <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-neutral-900">Oppsummering av tonen <span className="text-red-500">*</span></label>
               <textarea
                 value={profile.summary}
                 onChange={(e) => setField('summary', e.target.value)}
-                className="w-full h-20 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+                className="w-full h-20 p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
                 placeholder="Kort oppsummering av stemma..."
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-900">Tone</label>
+                <label className="block text-sm font-medium text-neutral-900">Tone</label>
                 <input type="text" value={profile.tone || ''} onChange={(e) => setField('tone', e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" placeholder="T.d. uformell, varm, fagleg" />
+                  className="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" placeholder="T.d. uformell, varm, fagleg" />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-900">Rytme og setningsbygnad</label>
+                <label className="block text-sm font-medium text-neutral-900">Rytme og setningsbygnad</label>
                 <input type="text" value={profile.rhythm || ''} onChange={(e) => setField('rhythm', e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" placeholder="T.d. korte, kontante setningar" />
+                  className="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" placeholder="T.d. korte, kontante setningar" />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-900">Vokabular og tiltaleform</label>
+                <label className="block text-sm font-medium text-neutral-900">Vokabular og tiltaleform</label>
                 <input type="text" value={profile.vocabulary || ''} onChange={(e) => setField('vocabulary', e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" placeholder='T.d. brukar "vi", enkelt språk' />
+                  className="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" placeholder='T.d. brukar "vi", enkelt språk' />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-900">CTA-stil</label>
+                <label className="block text-sm font-medium text-neutral-900">CTA-stil</label>
                 <input type="text" value={profile.ctaStyle || ''} onChange={(e) => setField('ctaStyle', e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" placeholder="T.d. direkte og oppfordrande" />
+                  className="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" placeholder="T.d. direkte og oppfordrande" />
               </div>
             </div>
 
@@ -301,19 +301,19 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
               {renderArrayEditor('donts', 'Slik skriv vi IKKJE (DONTs)', 'Stilar AI-en skal unngå.', 'T.d. unngå forkortingar')}
             </div>
 
-            <div className="space-y-3 pt-4 border-t border-gray-100">
-              <label className="block text-sm font-medium text-gray-900">Referansetekstar (maks 3)</label>
-              <p className="text-xs text-gray-500">Lim inn 1–3 gode eksempel AI-en kan herme direkte etter.</p>
+            <div className="space-y-3 pt-4 border-t border-neutral-100">
+              <label className="block text-sm font-medium text-neutral-900">Referansetekstar (maks 3)</label>
+              <p className="text-xs text-neutral-500">Lim inn 1–3 gode eksempel AI-en kan herme direkte etter.</p>
               <div className="space-y-4">
                 {(profile.referenceTexts?.length ? profile.referenceTexts : ['']).map((item, index) => (
                   <div key={`ref-${index}`} className="relative">
                     <textarea
                       value={item}
                       onChange={(e) => handleArrayChange('referenceTexts', index, e.target.value)}
-                      className="w-full h-28 p-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+                      className="w-full h-28 p-3 pr-10 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
                       placeholder={`Referansetekst ${index + 1}...`}
                     />
-                    <button onClick={() => removeArrayItem('referenceTexts', index)} className="absolute top-3 right-3 p-1 text-gray-400 hover:text-red-500 transition-colors bg-white rounded-md">
+                    <button onClick={() => removeArrayItem('referenceTexts', index)} className="absolute top-3 right-3 p-1 text-neutral-400 hover:text-red-500 transition-colors bg-white rounded-md">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -326,11 +326,11 @@ export function BrandVoiceForm({ brandId, initialProfile, apiKey, onSave }: Bran
               </div>
             </div>
 
-            <div className="flex justify-end pt-6 border-t border-gray-100">
+            <div className="flex justify-end pt-6 border-t border-neutral-100">
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-lg transition-colors font-medium ${isSaved ? 'bg-green-100 text-green-700' : 'bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50'}`}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-lg transition-colors font-medium ${isSaved ? 'bg-green-100 text-green-700' : 'bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50'}`}
               >
                 {isSaved ? (<><Check className="w-4 h-4" /> Lagra!</>) : (<><Save className="w-4 h-4" /> {isSaving ? 'Lagrar...' : 'Lagre Brand Voice'}</>)}
               </button>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   User, LogOut, LogIn, ChevronUp, Sparkles, Share2, Trash2, Activity,
-  CircleCheck, AlertCircle, KeyRound
+  CircleCheck, AlertCircle, KeyRound, UserX
 } from 'lucide-react';
 
 type KeyStatus = 'idle' | 'checking' | 'valid' | 'invalid';
@@ -21,6 +21,7 @@ interface Props {
   onShare: () => void;
   onReset: () => void;
   onQuality: () => void;
+  onDeleteAccount: () => void;
 }
 
 /**
@@ -30,7 +31,7 @@ interface Props {
  */
 export function AccountMenu({
   user, isAdmin, keyStatus, hasApiKey, showReset, copiedShare,
-  onSignIn, onLogout, onOpenApiKey, onDemo, onShare, onReset, onQuality
+  onSignIn, onLogout, onOpenApiKey, onDemo, onShare, onReset, onQuality, onDeleteAccount
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -94,6 +95,7 @@ export function AccountMenu({
             {showReset && item(<Trash2 className="w-4 h-4 text-red-500" />, 'Start på nytt', onReset, 'text-red-600 hover:bg-red-50')}
             <div className="my-1 border-t border-neutral-100" />
             {item(<LogOut className="w-4 h-4 text-neutral-400" />, 'Logg ut', onLogout)}
+            {item(<UserX className="w-4 h-4 text-red-500" />, 'Slett kontoen min', onDeleteAccount, 'text-red-600 hover:bg-red-50')}
           </motion.div>
         )}
       </AnimatePresence>

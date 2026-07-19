@@ -113,13 +113,13 @@ export function BrandSelector({ selectedBrand, onSelectBrand }: BrandSelectorPro
       )}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-neutral-200 rounded-lg shadow-sm hover:bg-neutral-50 transition-colors"
       >
-        <Building2 className="w-4 h-4 text-gray-500" />
-        <span className="font-medium text-gray-900">
+        <Building2 className="w-4 h-4 text-neutral-500" />
+        <span className="font-medium text-neutral-900">
           {selectedBrand ? selectedBrand.name : 'Velg kunde'}
         </span>
-        <ChevronDown className="w-4 h-4 text-gray-500" />
+        <ChevronDown className="w-4 h-4 text-neutral-500" />
       </button>
 
       <AnimatePresence>
@@ -128,7 +128,7 @@ export function BrandSelector({ selectedBrand, onSelectBrand }: BrandSelectorPro
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50"
+            className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-neutral-100 overflow-hidden z-50"
           >
             <div className="p-2">
               {brands.map((brand) => (
@@ -141,7 +141,7 @@ export function BrandSelector({ selectedBrand, onSelectBrand }: BrandSelectorPro
                     className={`flex-1 flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
                       selectedBrand?.id === brand.id
                         ? 'bg-blue-50 text-blue-700'
-                        : 'hover:bg-gray-50 text-gray-700'
+                        : 'hover:bg-neutral-50 text-neutral-700'
                     }`}
                   >
                     <span className="font-medium truncate">{brand.name}</span>
@@ -150,8 +150,8 @@ export function BrandSelector({ selectedBrand, onSelectBrand }: BrandSelectorPro
                     )}
                   </button>
                   <button
-                    onClick={(e) => handleDeleteBrand(e, brand.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                    onClick={(e) => handleDeleteBrand(e, brand.id!)}
+                    className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                     title="Slett kunde"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -160,7 +160,7 @@ export function BrandSelector({ selectedBrand, onSelectBrand }: BrandSelectorPro
               ))}
             </div>
 
-            <div className="border-t border-gray-100 p-2 bg-gray-50">
+            <div className="border-t border-neutral-100 p-2 bg-neutral-50">
               {isCreating ? (
                 <form onSubmit={handleCreateBrand} className="flex gap-2">
                   <input
@@ -168,7 +168,7 @@ export function BrandSelector({ selectedBrand, onSelectBrand }: BrandSelectorPro
                     value={newBrandName}
                     onChange={(e) => setNewBrandName(e.target.value)}
                     placeholder="Kundenavn..."
-                    className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-1.5 text-sm border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     autoFocus
                   />
                   <button

@@ -310,6 +310,35 @@ export async function deletePlan(uid: string, brandId: string, id: string) {
   }
 }
 
+/**
+ * GDPR art. 17: slett ALT innhald brukaren eig – merkevarer med underkolleksjonar
+ * (analysar/planar/innlegg), voiceProfiles, articles og til slutt users-dokumentet.
+ * Firestore kaskaderer ikkje sletting av underkolleksjonar, difor eksplisitt iterasjon.
+ * Kastar ved feil (via handleFirestoreError) slik at kallaren ikkje slettar auth-kontoen
+ * før datasletting faktisk lukkast.
+ */
+export async function deleteAllUserData(uid: string) {
+  const brandsSnap = await getDocs(collection(db, `users/${uid}/brands`));
+  for (const brandDoc of brandsSnap.docs) {
+    for (const sub of ['analyses', 'plans', 'posts']) {
+      const subSnap = await getDocs(collection(db, `users/${uid}/brands/${brandDoc.id}/${sub}`));
+      for (const d of subSnap.docs) {
+        await deleteDoc(d.ref);
+      }
+    }
+    await deleteDoc(brandDoc.ref);
+  }
+
+  for (const coll of ['voiceProfiles', 'articles']) {
+    const snap = await getDocs(query(collection(db, coll), where('uid', '==', uid)));
+    for (const d of snap.docs) {
+      await deleteDoc(d.ref);
+    }
+  }
+
+  await deleteDoc(doc(db, 'users', uid));
+}
+
 export async function deletePost(uid: string, brandId: string, id: string) {
   try {
     await deleteDoc(doc(db, `users/${uid}/brands/${brandId}/posts`, id));

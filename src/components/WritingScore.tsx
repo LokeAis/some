@@ -18,7 +18,7 @@ function Gauge({ label, icon: Icon, result }: { label: string; icon: typeof Book
         <span className="text-xl font-bold leading-none">{result.score}</span>
         <span className="text-[9px] font-medium opacity-70">/ 100</span>
       </div>
-      <div className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+      <div className="text-sm font-semibold text-neutral-900 flex items-center gap-1.5">
         <Icon className="w-4 h-4 text-purple-500" /> {label}
       </div>
     </div>
@@ -50,7 +50,7 @@ export function WritingScore({ text }: Props) {
   ].slice(0, 6);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4">
+    <div className="rounded-xl border border-neutral-200 bg-white p-4 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
         <Gauge label="Lesbarheit" icon={BookOpen} result={readability} />
         <Gauge label="SEO" icon={Search} result={seo} />
@@ -60,7 +60,7 @@ export function WritingScore({ text }: Props) {
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="Fokus-nøkkelord (t.d. «leggbeskyttarar»)"
-            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+            className="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
           />
         </div>
       </div>
@@ -71,7 +71,7 @@ export function WritingScore({ text }: Props) {
             {ok
               ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-px" />
               : <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-px" />}
-            <span className={ok ? 'text-gray-500' : 'text-gray-700'}>{tip}</span>
+            <span className={ok ? 'text-neutral-500' : 'text-neutral-700'}>{tip}</span>
           </li>
         ))}
       </ul>

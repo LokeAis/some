@@ -104,7 +104,11 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
   const [generatingImage, setGeneratingImage] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
-  const [formData, setFormData] = useState(() => {
+  const [formData, setFormData] = useState<{
+    contentType: 'post' | 'article'; channel: string; theme: string; goal: string;
+    format: string; angle: string; tone: string; cta: string; modification: string;
+    visualStyle: string; status: 'draft' | 'ready' | 'published';
+  }>(() => {
     const saved = localStorage.getItem('draft_singlePost');
     if (saved) {
       try {
@@ -265,7 +269,7 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
   };
 
   const handleSave = async () => {
-    if (!user || !post) return;
+    if (!user || !post || !selectedBrand) return;
     setSaving(true);
     try {
       let hook = post.hook;
@@ -354,7 +358,7 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
       } else {
         const newId = await savePost(user.uid, selectedBrand.id!, postDataToSave);
         if (onPostUpdate) {
-          loadedPostIdRef.current = newId;
+          loadedPostIdRef.current = newId ?? null;
           onPostUpdate({ id: newId, ...postDataToSave });
         }
       }
@@ -687,6 +691,7 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
                     setEditedText('');
                     setFormData({
                       contentType: 'post',
+                      status: 'draft',
                       channel: 'Instagram',
                       theme: '',
                       goal: 'Engasjement',
@@ -1185,7 +1190,7 @@ export function SinglePost({ analysisData, initialPlanItem, initialPost, onGoToA
                     </div>
                     <p className="text-neutral-600 text-sm italic flex-grow">"{post.short_version}"</p>
                     <button 
-                      onClick={() => copyToClipboard(post.short_version)}
+                      onClick={() => copyToClipboard(post.short_version || '')}
                       className="mt-2 text-xs font-medium text-emerald-600 hover:text-emerald-700 flex items-center space-x-1 w-fit"
                     >
                       <Copy className="w-3 h-3" />

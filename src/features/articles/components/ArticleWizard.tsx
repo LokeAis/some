@@ -268,13 +268,13 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+      <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+        <div className="p-6 border-b border-neutral-100 bg-neutral-50/50">
+          <h2 className="text-xl font-semibold text-neutral-900 flex items-center gap-2">
             <FileText className="w-5 h-5 text-purple-600" />
             Artikkelgenerator
           </h2>
-          <p className="text-gray-500 mt-1">
+          <p className="text-neutral-500 mt-1">
             Lag strukturerte artiklar ved å først definere ein disposisjon.
           </p>
         </div>
@@ -290,7 +290,7 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
 
           {/* Steg 1: Tema */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+            <h3 className="text-lg font-medium text-neutral-900 flex items-center gap-2">
               <span className="bg-purple-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">1</span>
               Tema
             </h3>
@@ -300,7 +300,7 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="Kva skal artikkelen handle om?"
-                className="flex-1 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none"
+                className="flex-1 p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none"
               />
               <button
                 onClick={handleGenerateOutline}
@@ -321,12 +321,12 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
                     checked={useSearch}
                     onChange={(e) => setUseSearch(e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                  <span className="ml-3 text-sm font-medium text-gray-700">Bruk nettsøk for oppdaterte kjelder (Google Search Grounding)</span>
+                  <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                  <span className="ml-3 text-sm font-medium text-neutral-700">Bruk nettsøk for oppdaterte kjelder (Google Search Grounding)</span>
                 </label>
                 <div className="group relative flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs cursor-help">?</div>
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                  <div className="w-4 h-4 rounded-full bg-neutral-200 text-neutral-500 flex items-center justify-center text-xs cursor-help">?</div>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-neutral-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                     Slå på for artiklar om dagsaktuell statistikk, trendar eller tema med rask utvikling. Trengst ikkje for evergreen-artiklar eller enkle forklaringsartiklar.
                   </div>
                 </div>
@@ -337,12 +337,12 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
 
           {/* Steg 2: Disposisjon */}
           {(outline || isGeneratingOutline) && (
-            <div className="space-y-4 pt-6 border-t border-gray-100">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+            <div className="space-y-4 pt-6 border-t border-neutral-100">
+              <h3 className="text-lg font-medium text-neutral-900 flex items-center gap-2">
                 <span className="bg-purple-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">2</span>
                 Disposisjon
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-neutral-500">
                 Rediger disposisjonen før du genererer sjølve artikkelen.
               </p>
               <AITextEditor
@@ -369,12 +369,12 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
 
           {/* Steg 3: Artikkel */}
           {(article || isGeneratingArticle) && (
-            <div className="space-y-4 pt-6 border-t border-gray-100">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+            <div className="space-y-4 pt-6 border-t border-neutral-100">
+              <h3 className="text-lg font-medium text-neutral-900 flex items-center gap-2">
                 <span className="bg-purple-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">3</span>
                 Artikkel
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-neutral-500">
                 Gå over og rediger artikkelen før du lagrar.
               </p>
               <AITextEditor
@@ -390,11 +390,11 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
               <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm font-medium text-gray-700">Status:</label>
+                    <label className="text-sm font-medium text-neutral-700">Status:</label>
                     <select
                       value={status}
                       onChange={(e) => setStatus(e.target.value as any)}
-                      className="text-sm border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                      className="text-sm border-neutral-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                     >
                       <option value="draft">Kladd</option>
                       <option value="ready">Klar</option>
@@ -428,19 +428,19 @@ export function ArticleWizard({ apiKey, selectedBrand, voiceProfile, user, initi
 
               {/* Multi-kanal-tilpasning: gjer den ferdige artikkelen om til sosiale utkast med eitt klikk */}
               {article.trim() && (
-                <div className="mt-2 p-4 rounded-xl border border-gray-200 bg-gray-50/60">
+                <div className="mt-2 p-4 rounded-xl border border-neutral-200 bg-neutral-50/60">
                   <div className="flex items-center gap-2 mb-1">
                     <Share2 className="w-4 h-4 text-emerald-600" />
-                    <h4 className="text-sm font-semibold text-gray-900">Del til sosiale kanalar</h4>
+                    <h4 className="text-sm font-semibold text-neutral-900">Del til sosiale kanalar</h4>
                   </div>
-                  <p className="text-xs text-gray-500 mb-3">Gjer artikkelen om til ferdige utkast, skreddarsydde for kanalen.</p>
+                  <p className="text-xs text-neutral-500 mb-3">Gjer artikkelen om til ferdige utkast, skreddarsydde for kanalen.</p>
                   <div className="flex flex-wrap gap-2">
                     {SHARE_CHANNELS.map(({ name, icon: Icon }) => (
                       <button
                         key={name}
                         onClick={() => repurpose.run({ text: article, channel: name })}
                         disabled={repurpose.loading}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-neutral-200 bg-white text-neutral-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors disabled:opacity-50"
                       >
                         {repurpose.loading && repurpose.activeChannel === name
                           ? <Loader2 className="w-4 h-4 animate-spin" />

@@ -21,7 +21,11 @@
       ]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "strict": true
   },
-  "exclude": ["dist", "node_modules"]
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }

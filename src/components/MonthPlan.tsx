@@ -61,7 +61,10 @@ export function MonthPlan({ analysisData, initialPlan, onSelectPost, onGoToAnaly
     prevLoading.current = loading;
   }, [loading, plan]);
   
-  const [formData, setFormData] = useState(() => {
+  const [formData, setFormData] = useState<{
+    channels: string[]; postsPerWeek: number; goal: string; tone: string;
+    manualAnalysis: string; visualStyle: string;
+  }>(() => {
     const saved = localStorage.getItem('draft_monthPlan');
     if (saved) {
       try {
@@ -225,7 +228,7 @@ export function MonthPlan({ analysisData, initialPlan, onSelectPost, onGoToAnaly
           posts: plan
         });
         if (onPlanUpdate) {
-          loadedPlanIdRef.current = newId;
+          loadedPlanIdRef.current = newId ?? null;
           onPlanUpdate({ id: newId, plan_summary: planSummary, posts: plan });
         }
       }

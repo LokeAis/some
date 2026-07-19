@@ -28,7 +28,7 @@ export function CompetitorAnalysis({ analysisData, onDataUpdate, onGoToPlan, sel
     }
   }, [analysisData?.competitor_analysis]);
   
-  const [formData, setFormData] = useState(() => {
+  const [formData, setFormData] = useState<{ ownUrl: string; ownManualText: string; competitorUrls: string[] }>(() => {
     const saved = localStorage.getItem('draft_competitorAnalysis');
     if (saved) {
       try {

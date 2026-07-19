@@ -101,15 +101,15 @@ export function ImageToPost({ apiKey, selectedBrand, brandVoice, onEditFurther }
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-rose-50 to-white">
+      <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+        <div className="p-6 border-b border-neutral-100 bg-gradient-to-r from-rose-50 to-white">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-rose-100 text-rose-600 rounded-lg">
               <ImagePlus className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">Bilde til innlegg</h2>
+            <h2 className="text-xl font-semibold text-neutral-900">Bilde til innlegg</h2>
           </div>
-          <p className="text-gray-600 text-sm">
+          <p className="text-neutral-600 text-sm">
             Last opp eit bilde og la AI-en foreslå ferdige innlegg med emojis og hashtags, tilpassa kanalen.
             Bildet vert berre analysert – det vert ikkje lagra.
           </p>
@@ -135,7 +135,7 @@ export function ImageToPost({ apiKey, selectedBrand, brandVoice, onEditFurther }
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full border-2 border-dashed border-gray-300 rounded-xl p-10 flex flex-col items-center justify-center gap-2 text-gray-500 hover:border-rose-300 hover:text-rose-600 transition-colors"
+              className="w-full border-2 border-dashed border-neutral-300 rounded-xl p-10 flex flex-col items-center justify-center gap-2 text-neutral-500 hover:border-rose-300 hover:text-rose-600 transition-colors"
             >
               <ImagePlus className="w-8 h-8" />
               <span className="text-sm font-medium">Klikk for å velje eit bilde</span>
@@ -143,13 +143,13 @@ export function ImageToPost({ apiKey, selectedBrand, brandVoice, onEditFurther }
             </button>
           ) : (
             <div className="relative inline-block">
-              <img src={preview} alt="Førehandsvising" className="max-h-64 rounded-xl border border-gray-200" />
+              <img src={preview} alt="Førehandsvising" className="max-h-64 rounded-xl border border-neutral-200" />
               <button
                 onClick={clearImage}
-                className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full p-1 shadow-sm hover:bg-gray-50"
+                className="absolute -top-2 -right-2 bg-white border border-neutral-200 rounded-full p-1 shadow-sm hover:bg-neutral-50"
                 title="Fjern bilde"
               >
-                <X className="w-4 h-4 text-gray-600" />
+                <X className="w-4 h-4 text-neutral-600" />
               </button>
             </div>
           )}
@@ -158,18 +158,18 @@ export function ImageToPost({ apiKey, selectedBrand, brandVoice, onEditFurther }
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Valfritt: kort kommentar eller stikkord om kva bildet viser (t.d. «ny produktlansering», «teambilde frå messe»)..."
-            className="w-full h-20 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none text-sm"
+            className="w-full h-20 p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none text-sm"
           />
 
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-2">Lag utkast for:</p>
+            <p className="text-xs font-medium text-neutral-500 mb-2">Lag utkast for:</p>
             <div className="flex flex-wrap gap-2">
               {CHANNELS.map(({ name, icon: Icon }) => (
                 <button
                   key={name}
                   onClick={() => generate(name)}
                   disabled={loading || !imageData}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-neutral-200 bg-white text-neutral-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading && activeChannel === name
                     ? <Loader2 className="w-4 h-4 animate-spin" />
