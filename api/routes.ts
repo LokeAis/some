@@ -50,8 +50,21 @@ function handleGeminiError(error: any, defaultMessage: string) {
   return { status: 500, error: `${defaultMessage}: ${error?.message || 'Ukjend feil'}` };
 }
 
+// Retter vanlege URL-tastefeil før validering: "https;//x" (semikolon i staden for kolon)
+// → "https://x", og manglande protokoll → "https://x". Gjer URL-input meir tilgjevande.
+export function normalizeUrl(raw: string): string {
+  let u = (raw || '').trim();
+  if (!u) return u;
+  u = u.replace(/^(https?);\/\//i, '$1://'); // https;// / http;// → https:// / http://
+  if (!/^https?:\/\//i.test(u)) {
+    u = 'https://' + u.replace(/^\/+/, ''); // manglar protokoll heilt → anta https
+  }
+  return u;
+}
+
 async function fetchAndParse(url: string): Promise<string> {
   try {
+    url = normalizeUrl(url);
     const parsedUrl = new URL(url);
     if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
       throw new Error("Only HTTP and HTTPS protocols are allowed");
@@ -405,7 +418,7 @@ Gi:
       }
       if (!useManualText && url) {
         try {
-          new URL(url);
+          new URL(normalizeUrl(url));
         } catch (e) {
           return res.status(400).json({ error: "Ugyldig URL-format for hovudnettside. Hugs å inkludere https://" });
         }

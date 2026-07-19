@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { registerApiRoutes } from './routes';
+import { registerApiRoutes, normalizeUrl } from './routes';
 
 // Byggjer ein Express-app med dei delte rutene (same som server.ts og api/index.ts brukar).
 // Rate limiting hoppar automatisk over i testmodus (NODE_ENV=test).
@@ -184,6 +184,24 @@ describe('image-to-post (bilde til innlegg)', () => {
       .send({ imageBase64: 'abc' });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/kanal/i);
+  });
+});
+
+describe('normalizeUrl', () => {
+  it('rettar semikolon-tastefeil i protokollen', () => {
+    expect(normalizeUrl('https;//jkn.no')).toBe('https://jkn.no');
+    expect(normalizeUrl('http;//jkn.no')).toBe('http://jkn.no');
+  });
+  it('legg til https:// når protokoll manglar', () => {
+    expect(normalizeUrl('jkn.no')).toBe('https://jkn.no');
+    expect(normalizeUrl('www.jkn.no/side')).toBe('https://www.jkn.no/side');
+  });
+  it('lar gyldige URL-ar vere i fred', () => {
+    expect(normalizeUrl('https://jkn.no')).toBe('https://jkn.no');
+    expect(normalizeUrl('http://jkn.no/a?b=1')).toBe('http://jkn.no/a?b=1');
+  });
+  it('trimmar whitespace', () => {
+    expect(normalizeUrl('  https://jkn.no  ')).toBe('https://jkn.no');
   });
 });
 
