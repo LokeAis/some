@@ -41,7 +41,7 @@ function handleGeminiError(error: any, defaultMessage: string) {
     return { status: 503, error: 'Nettverksfeil ved kontakt med AI-tenesta. Prøv igjen.' };
   }
   if (errorMessage.includes('not found') || errorMessage.includes('404')) {
-    return { status: 404, error: 'Fann ikkje AI-modellen. Sjekk at API-nøkkelen din har tilgang til Gemini 3.1 Flash Lite.' };
+    return { status: 404, error: 'Fann ikkje AI-modellen. Sjekk at API-nøkkelen din har tilgang til Gemini 3.6 Flash.' };
   }
   if (errorMessage.includes('safety') || errorMessage.includes('blocked')) {
     return { status: 400, error: 'Svaret vart blokkert av tryggleiksfilteret til AI-en. Prøv å endre temaet eller vinklinga.' };
