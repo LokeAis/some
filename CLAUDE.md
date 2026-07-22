@@ -20,7 +20,7 @@ that language when editing user-facing strings, error messages, and comments.
 - **Backend**: Node.js + Express 4. Route logic lives in `api/routes.ts` and is shared
   between the local/standalone server (`server.ts`) and the Vercel serverless entry
   (`api/index.ts`).
-- **AI**: Google Gemini via `@google/genai`. Models in use: `gemini-3.5-flash` (text),
+- **AI**: Google Gemini via `@google/genai`. Models in use: `gemini-3.6-flash` (text),
   `gemini-2.5-flash-image` (image generation).
 - **Database & Auth**: Firebase — Firestore + Google Authentication.
 - **Testing**: Vitest + Supertest (API route tests).

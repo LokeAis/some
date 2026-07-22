@@ -253,7 +253,7 @@ const formatBrandVoice = (bv: any) => {
 };
   
   app.post("/api/analyze-brand-voice", async (req, res) => {
-    const model = "gemini-3.5-flash";
+    const model = "gemini-3.6-flash";
 
     try {
       const { samples, url } = req.body;
@@ -377,7 +377,7 @@ Gi:
 - biggest_deviation: det ENE viktigaste avviket frå stemma, formulert som ei handlingsretta forbetring. Tom streng dersom teksten treff perfekt.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           systemInstruction: "Du er ein objektiv evaluator. Baser scoren strengt på samsvar mellom teksten og den oppgitte stemma. Ikkje vurder om innhaldet er bra generelt – berre om det høyrest ut som merkevaren.",
@@ -493,7 +493,7 @@ ${websiteText || "Ingen tekst funne. Gjer eit best mogleg estimat basert på URL
 </input>`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           systemInstruction,
@@ -610,7 +610,7 @@ Reglar:
       prompt += `Analyser likskapar og forskjellar, og foreslå konkrete content gaps der eigen bedrift kan lage innhald som konkurrentane ikkje dekker godt. For kvart gap, gi konkrete forslag til innhald (content_ideas).`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           systemInstruction,
@@ -674,7 +674,7 @@ Reglar:
   });
 
   app.post("/api/month-plan", async (req, res) => {
-    const model = "gemini-3.5-flash";
+    const model = "gemini-3.6-flash";
 
     try {
       const { analysis, channels, postsPerWeek, goal, tone, brandProfile, visualStyle, brandVoice } = req.body;
@@ -769,7 +769,7 @@ ${JSON.stringify(analysis, null, 2)}
   });
 
   app.post("/api/generate-post", async (req, res) => {
-    const model = "gemini-3.5-flash";
+    const model = "gemini-3.6-flash";
 
     try {
       const { channel, theme, goal, angle, tone, cta, analysis, modification, contentType, brandProfile, visualStyle, brandVoice, requires_search } = req.body;
@@ -961,7 +961,7 @@ ${brandProfile ? `\n<avsendar>\n${JSON.stringify(slimBrandProfile(brandProfile),
 </oppgåve>`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           systemInstruction,
@@ -1052,7 +1052,7 @@ ${comment ? `\n<brukaren sin kommentar/stikkord>\n${comment}\n</brukaren sin kom
 ${brandProfile ? `\n<avsendar>\n${JSON.stringify(slimBrandProfile(brandProfile), null, 2)}\n</avsendar>\n` : ''}`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: [{
           parts: [
             { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } },
@@ -1161,7 +1161,7 @@ ${brandProfile ? `\n<avsendar>\n${JSON.stringify(slimBrandProfile(brandProfile),
       const prompt = `Finn dei 3 viktigaste trendane eller nyheitene innan ${industry} i dag, ${today}. Gje meg ei kort oppsummering av kvar.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           tools: [{ googleSearch: {} }],
@@ -1230,7 +1230,7 @@ Koble nyheita til kvifor dette er viktig for kundane våre. Skap verdi, vis inns
 ${brandProfile ? `Vår bedrift:\n${JSON.stringify(slimBrandProfile(brandProfile), null, 2)}` : ''}`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           systemInstruction: `Du er ein dyktig norsk SoMe-copywriter. Du skriv engasjerande, innsiktsfullt og verdidrive innhald.${formattedBrandVoice ? `\nBruk min 'Brand Voice' [${formattedBrandVoice}] for å treffe nøyaktig på tone of voice, rytme og vokabular.\n` : ''}`,
@@ -1305,7 +1305,7 @@ STEG 2: Lag disposisjonen basert på den valde kategorien. Ikkje bruk ein standa
         config.tools = [{ googleSearch: {} }];
       }
 
-      const modelName = "gemini-3.5-flash";
+      const modelName = "gemini-3.6-flash";
 
       const response = await ai.models.generateContent({
         model: modelName,
@@ -1377,7 +1377,7 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
         config.tools = [{ googleSearch: {} }];
       }
 
-      const modelName = "gemini-3.5-flash";
+      const modelName = "gemini-3.6-flash";
 
       const response = await ai.models.generateContent({
         model: modelName,
@@ -1435,7 +1435,7 @@ AVSLUTNING: Ikkje skriv ei tradisjonell oppsummering. Teksten skal slutte brått
       if (useSearch) {
         config.tools = [{ googleSearch: {} }];
       }
-      const modelName = "gemini-3.5-flash";
+      const modelName = "gemini-3.6-flash";
 
       const stream = await ai.models.generateContentStream({
         model: modelName,
@@ -1545,7 +1545,7 @@ Tekst som skal skrivast om:
       }
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: { temperature: 0.7 }
       });
@@ -1586,7 +1586,7 @@ Reglar:
 4. Returner KUN sjølve prompten, ingen introduksjon eller forklaring.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: { temperature: 0.7 }
       });
