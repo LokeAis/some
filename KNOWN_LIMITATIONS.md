@@ -14,9 +14,8 @@ Dette er ein oversikt over kva appen *ikkje* gjer enno, og kva som bør priorite
 - **JSON-parsing**: Sjølv om vi ber om JSON, kan modellen i sjeldne tilfelle returnere ugyldig JSON. Appen prøver å fange dette, men det kan føre til ein feilmelding for brukaren.
 
 ## 3. Prioritering framover
-*(Gjennomført sidan førre versjon: rate limiting, samanslåtte backendar, eksport av plan til CSV/PDF/kalender, brand voice-ekstraksjon, fidelity-score med auto-fiks, gjenbruk av innhald på tvers av kanalar, rollebasert admin, CI.)*
+*(Gjennomført sidan førre versjon: streaming av artikkelgenerering (`/api/generate-article-stream`), rate limiting, samanslåtte backendar, eksport av plan til CSV/PDF/kalender, brand voice-ekstraksjon, fidelity-score med auto-fiks, gjenbruk av innhald på tvers av kanalar, rollebasert admin, CI.)*
 
-1. **Streaming av generering**: La artiklar «skrivast fram» token for token i staden for spinner — størst attverande premium-kjensle.
-2. **Delt rate limiting**: Flytt teljaren til delt lagring (Upstash/Redis) og differensier kvoten per rute-kostnad, før brei marknadsføring.
-3. **Betre skraping**: Puppeteer/Playwright for SPA-nettsider, eller la brukaren lime inn fleire URL-ar.
-4. **Demo utan innlogging**: La eksempelflyten køyre heilt utan konto/nøkkel for lågare terskel.
+1. **Delt rate limiting**: Flytt teljaren til delt lagring (Upstash/Redis) og differensier kvoten per rute-kostnad, før brei marknadsføring.
+2. **Betre skraping**: Puppeteer/Playwright for SPA-nettsider, eller la brukaren lime inn fleire URL-ar.
+3. **Demo utan innlogging**: La eksempelflyten køyre heilt utan konto/nøkkel for lågare terskel.

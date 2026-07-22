@@ -49,5 +49,5 @@ npm run build   # vite build + esbuild av serveren
 ## Teknologiar
 - **Frontend**: React 19, TypeScript, Tailwind CSS 4, Vite
 - **Backend**: Node.js, Express (delt rutelogikk i `api/routes.ts` for både lokal server og Vercel)
-- **AI**: Google Gemini API (gemini-3.6-flash, gemini-3.1-pro-preview, gemini-2.5-flash-image)
+- **AI**: Google Gemini API (gemini-3.6-flash for tekst, gemini-2.5-flash-image for bilete)
 - **Database & Auth**: Firebase (Firestore, Authentication)
